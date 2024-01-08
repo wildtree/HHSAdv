@@ -7,18 +7,41 @@
 Button::Button()
     :_x(-1), _y(-1), _w(-1), _h(-1), _label(""), _enabled(false)
 {
-
+    auto board = M5.getBoard();
+    _touch = (board == m5::board_t::board_M5StackCore2);
 }
 
 Button::Button(int x, int y, int w, int h, const String &label)
     : _x(x), _y(y), _w(w), _h(h), _label(label), _enabled(true)
 {
+    auto board = M5.getBoard();
+    _touch = (board == m5::board_t::board_M5StackCore2);
     if (_label.isEmpty()) _enabled = false;
 }
 
 Button::~Button()
 {
 
+}
+
+bool
+Button::is_pressed() const
+{
+    if (!is_enabled()||!_touch) return false;
+    int cnt = M5.Touch.getCount();
+    if (cnt == 0) return false;
+    bool r = false;
+    for (int i = 0 ; i < cnt ; i++)
+    {
+        auto t = M5.Touch.getDetail(i);
+        if (!t.isPressed()) continue;
+        if (t.x >= _x && t.x < _x + _w && t.y >= _y && t.y < _y + _h)
+        {
+            r = true;
+            break;
+        }
+    }
+    return r;
 }
 
 void
@@ -124,19 +147,19 @@ Dialog::draw(void)
     while(true)
     {
         M5.update();
-        if (_btnA.is_enabled() && M5.BtnA.isPressed())
+        if ((_btnA.is_enabled() && M5.BtnA.isPressed())||_btnA.is_pressed())
         {
             _btnA.draw(true);
             _result = 1;
             break;
         }
-        if (_btnB.is_enabled() && M5.BtnB.isPressed())
+        if ((_btnB.is_enabled() && M5.BtnB.isPressed())||_btnB.is_pressed())
         {
             _btnB.draw(true);
             _result = 2;
             break;
         }
-        if (_btnC.is_enabled() && M5.BtnC.isPressed())
+        if ((_btnC.is_enabled() && M5.BtnC.isPressed())||_btnC.is_pressed())
         {
             _btnC.draw(true);
             _result = 3;

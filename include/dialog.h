@@ -21,10 +21,12 @@ public:
     void enable() { _enabled = true; }
     void disable() { _enabled = false;}
     bool is_enabled() const { return _enabled; }
+    bool is_pressed() const;
 protected:
     bool _enabled;
     int _x, _y, _w, _h;
     String _label;
+    bool _touch;
 };
 
 class Dialog

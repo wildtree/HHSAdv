@@ -21,7 +21,6 @@
 class ZVScroll
 {
 protected:
-    int _y;
     int _top, _bottom;
     int _tx, _ty;
     int _h;
@@ -40,6 +39,7 @@ public:
     static const int YMax = 240;
     static const int XMax = 320;
     static const int FontHeight = 16;
+    static const int FontWidth = 8;
 };
 
 #endif /* VSCROLL_H */

@@ -51,6 +51,9 @@ public:
     Button &btnA() { return _btnA; }
     Button &btnB() { return _btnB; }
     Button &btnC() { return _btnC; }
+
+    static const int FontHeight = 16;
+    static const int FontWidth = 8;
 };
 
 

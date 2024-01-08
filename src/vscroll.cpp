@@ -8,7 +8,7 @@
 // Instead of it, software scroll is implemented by this module.
 // Constructer
 ZVScroll::ZVScroll(uint16_t top, uint16_t bottom)
-    :_top(top), _bottom(bottom), _y((int)top), _ty((int)top), _tx(0)
+    :_top(top), _bottom(bottom), _ty((int)top), _tx(0)
 {
 #if 0
     M5.Display.writecommand(ILI9342C_VSCRDEF);
@@ -23,7 +23,7 @@ ZVScroll::ZVScroll(uint16_t top, uint16_t bottom)
 }
 
 ZVScroll::ZVScroll(const ZVScroll &x)
-    : _top(x._top), _bottom(x._bottom), _y(x._y), _ty(x._ty), _tx(x._tx),_h(x._h)
+    : _top(x._top), _bottom(x._bottom), _ty(x._ty), _tx(x._tx),_h(x._h)
 {
 #if 0
     M5.Display.writecommand(ILI9342C_VSCRDEF);
@@ -66,8 +66,8 @@ ZVScroll::scrollLine()
     if (_y >= YMax - _bottom) _y -= YMax - _bottom - _top;
     scrollAddress(_y);
 #else
-    _y += FontHeight;
-    if (_y >= YMax - _bottom)
+    int ly = _ty + FontHeight;
+    if (ly >= YMax - _bottom)
     {
         M5.Display.startWrite();
         for (int y = 0 ; y < _h - FontHeight ; y++)
@@ -76,11 +76,11 @@ ZVScroll::scrollLine()
             M5.Display.pushImage(0, y + _top, XMax, 1, _buf);
         }
         M5.Display.endWrite();
-        _y -= FontHeight;
+        ly = _ty;
     }
     //Serial.printf("clear line to be written: (%d)\n", _y);
-    M5.Display.fillRect(0, _y, XMax, FontHeight, BLACK);
-    _ty = _y;
+    M5.Display.fillRect(0, ly, XMax, FontHeight, BLACK);
+    _ty = ly;
 #endif
     _tx = 0;
     return _ty;
@@ -96,7 +96,7 @@ ZVScroll::print(const String &s)
         //Serial.printf("idx = %d (code = %#02x) (%d,%d)\n", i, c, _tx, _ty);
         if (isascii(c))
         {
-            if (_tx >= 312)
+            if (_tx >= XMax - FontWidth)
             {
                 scrollLine();
             }
@@ -109,14 +109,14 @@ ZVScroll::print(const String &s)
         }
         else
         {
-            if (_tx >= 312)
+            if (_tx >= XMax - FontWidth)
             {
                 scrollLine();
             }
             M5.Display.setFont(&fonts::lgfxJapanGothic_16);
             M5.Display.setCursor(_tx, _ty);
             M5.Display.print(s[i]);
-            _tx += 16;
+            _tx += FontWidth * 2;
         }
     }
     M5.Display.setFont(&fonts::AsciiFont8x16);
@@ -126,6 +126,6 @@ void
 ZVScroll::cls(void)
 {
     _tx = 0;
-    _ty = _y = _top;
+    _ty = _top;
     M5.Display.fillRect(0, _top, XMax, YMax - _bottom - _top, BLACK);
 }

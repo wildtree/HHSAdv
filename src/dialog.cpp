@@ -101,21 +101,21 @@ Dialog::_print() const
         uint8_t c = _message[i];
         if (isascii(c)||c >= 0xc0)
         {
-            if (x >= 304)
+            if (x >= _x + _w - FontWidth)
             {
-                x = _x + 8;
+                x = _x + FontWidth;
                 y += M5.Display.fontHeight(M5.Display.getFont());
             }
             M5.Display.setCursor(x, y);
             if (isascii(c))
             {
                 M5.Display.setFont(&fonts::AsciiFont8x16);
-                x += 8;
+                x += FontWidth;
             }
             else
             {
                 M5.Display.setFont(&fonts::lgfxJapanGothic_16);
-                x += 16;
+                x += FontWidth * 2;
             }
         }
         M5.Display.print((char)c);

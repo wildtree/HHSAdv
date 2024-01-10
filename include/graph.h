@@ -28,11 +28,11 @@ public:
 #endif
     Canvas(uint16_t x = 0, uint16_t y = 0, uint16_t w = 320, uint16_t h = 240);
     Canvas(const Canvas &x);
-    ~Canvas();
+    virtual ~Canvas();
 
-    void cls(uint16_t c = BLACK);
+    virtual void cls(uint16_t c = BLACK);
     void line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t col);
-    void pset(uint16_t x, uint16_t y, uint16_t col);
+    virtual void pset(uint16_t x, uint16_t y, uint16_t col);
     uint16_t pget(uint16_t x, uint16_t y) const { return _v[x + y * _w]; }
     void paint(uint16_t x, uint16_t y, uint16_t fc, uint16_t bc);
     void tonePaint(const uint8_t tone[], bool tiling = false);
@@ -43,6 +43,8 @@ public:
     void colorFilter(void);
     void setColorFilter(const float filter[]) { _colorFilter = (float*)filter; }
     void resetColorFilter() { setColorFilter(nullptr); }
+
+    virtual void invalidate() const {}
 
     static const float blueFilter[], redFilter[], sepiaFilter[];
 };
@@ -72,4 +74,17 @@ public:
     bool empty() const { return _head == _tail;}
 };
 #endif 
+
+class CardputerCanvas : public Canvas
+{
+protected:
+public:
+    CardputerCanvas(uint16_t x = 0, uint16_t y = 0, uint16_t w = 320, uint16_t h = 240) : Canvas(x, y, w, h) {}
+    CardputerCanvas(const Canvas &x) : Canvas(x) {}
+    virtual ~CardputerCanvas();
+
+    virtual void cls(uint16_t c = BLACK);
+    virtual void pset(uint16_t x, uint16_t y, uint16_t col);
+    virtual void invalidate() const;
+};
 #endif /* GRAPH_H */

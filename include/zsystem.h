@@ -20,7 +20,7 @@ class ZSystem
 {
 protected:
     LineEditor *_le;
-    ZVScroll *_zvs;
+    ZVScroll *_zvs, *_prompt;
     Canvas *_cv;
     ZCore *_core;
     ZWords *_dict;

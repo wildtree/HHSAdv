@@ -189,9 +189,13 @@ ZMapRoot::curMapData()
 {
     if(_p != _l)
     {
+        //Serial.printf("loading map id=%d\r\n", _p);
         File f = SD.open(_file);
+        //Serial.printf("'%s' is opened\r\n", _file);
         uint8_t *buf = new uint8_t [fileBlockSize];
+        //Serial.printf("buffer is allocated: %08x\r\n", buf);
         f.seek(_p * fileBlockSize);
+        //Serial.printf("file pointer is moved to: %08x\r\n", _p * fileBlockSize);
         if (f.available())
         {
             f.readBytes((char*)buf, fileBlockSize);
@@ -204,8 +208,10 @@ ZMapRoot::curMapData()
             }
             _l = _p;
         }
+        //Serial.print("data loaded. buffer to delete.\r\n");
         delete [] buf;
         f.close();
+        //Serial.print("loaded.\r\n");
     }
     return *_map;
 }

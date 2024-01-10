@@ -17,6 +17,7 @@
 #include <dialog.h>
 
 static ZSystem *game = NULL; // game system
+static SPIClass spi; // spi is not allowed as local variable
 
 #if 0
 void *operator new(std::size_t sz)
@@ -48,11 +49,26 @@ void setup() {
     M5.Display.setRotation(1);
     Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
     // mount SD (need for M5Unified library)
-    while (false == SD.begin(GPIO_NUM_4, SPI, 25000000))
+    uint8_t ssPin = M5.getPin(m5::pin_name_t::sd_spi_ss);
+    if (M5.getBoard() == m5::board_t::board_M5StampS3)
+    {
+      spi.begin(
+        M5.getPin(m5::pin_name_t::sd_spi_sclk),
+        M5.getPin(m5::pin_name_t::sd_spi_miso),
+        M5.getPin(m5::pin_name_t::sd_spi_mosi),
+        M5.getPin(m5::pin_name_t::sd_spi_ss)
+      );
+    }
+    else
+    {
+      spi = SPI;
+    }
+    while (false == SD.begin(ssPin /*GPIO_NUM_4*/, spi, 25000000))
     {
       M5.Display.println("SD Wait ...");
       delay(500);
     }
+    M5.Display.clear(BLACK);
     game = new ZSystem();
     game->loadDict("/HHSAdv/highds.com");
     game->loadMap("/HHSAdv/map.dat");

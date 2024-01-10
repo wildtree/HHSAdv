@@ -17,17 +17,25 @@ const String ZSystem::_credit[] = {
 ZSystem::ZSystem()
     : _dict(nullptr), _zmap(nullptr), _obj(nullptr), _user(nullptr), _msg(nullptr), _rules(nullptr),_mode(Title)
 {
-    _cv = new Canvas(32,8,256,152);
-    _zvs = new ZVScroll(160,16);
     _le = new LineEditor(30);
     _core = new ZCore();
     switch (M5.getBoard())
     {
         case m5::board_t::board_M5Stack:
+            _cv = new Canvas(32, 8, 256, 152);
+            _zvs = new ZVScroll(160, 16);
+            _prompt = new ZVScroll(224, 0);
             _keyboard = new M5StackKeyBoard;
             break;
         case m5::board_t::board_M5StackCore2:
+            _cv = new Canvas(32, 8, 256, 152);
+            _zvs = new ZVScroll(160, 16);
+            _prompt = new ZVScroll(224, 0);
             _keyboard = new M5Core2KeyBoard;
+            break;
+        case m5::board_t::board_M5StampS3:
+            // Cardputer
+            break;
         default:
             break;
     }
@@ -113,18 +121,27 @@ ZSystem::title(void) const
 void
 ZSystem::prompt(void) const
 {
+#if 0
     M5.Display.setCursor(0,224);    
     M5.Display.setTextColor(GREEN);
     M5.Display.setFont(&fonts::lgfxJapanGothic_16);
     M5.Display.print((_mode == Play) ? "どうする?" : "何かキーを押してください。");
     M5.Display.setTextColor(WHITE);
     M5.Display.setFont(&fonts::AsciiFont8x16);
+#else
+    _prompt->home();
+    _prompt->setFont(&fonts::lgfxJapanGothic_16);
+    _prompt->setTextColor(GREEN);
+    _prompt->print((_mode == Play)? "どうする? " : "何かキーを押してください。");
+    _prompt->invalidate();
+#endif
 }
 
 void ZSystem::game_over(void)
 {
     _mode = GameOver;
-    M5.Display.fillRect(0,224,320,16,BLACK);
+    _prompt->cls();
+    // M5.Display.fillRect(0,224,320,16,BLACK);
     prompt();
 }
 
@@ -266,7 +283,9 @@ ZSystem::check_darkness(void)
 void
 ZSystem::draw_screen(bool with_msg)
 {
+    Serial.print("check darkness.\r\n");
     check_darkness();
+    Serial.print("draw map.\r\n");
     _zmap->curMapData().draw(_cv);
     _cv->colorFilter();
     //Serial.printf("map_id:%d\r\n", _zmap->getCursor());
@@ -591,7 +610,8 @@ ZSystem::start(void)
 {
     if (_mode != Play) return;
     _cv->resetColorFilter();
-    M5.Display.fillRect(0, 224, 320, 16, BLACK);
+    _prompt->cls();
+    //M5.Display.fillRect(0, 224, 320, 16, BLACK);
     _zmap->setCursor(1);
     _core->mapId(1);
     M5.Display.setTextColor(WHITE);
@@ -618,6 +638,7 @@ ZSystem::loop(void)
                 title();
                 loadUser("/HHSAdv/data.dat"); // initialize data
             }
+            _prompt->cls();
         }
     }
     else
@@ -628,11 +649,17 @@ ZSystem::loop(void)
             String cmd = _le->putChar(c);
             if (c == '\r')
             {
-                M5.Display.fillRect(80, 224, 240, 16, BLACK);
+                //M5.Display.fillRect(80, 224, 240, 16, BLACK);
                 run(cmd);
+                _prompt->cls();
                 return;
             }
-            _le->draw(80, 224, 240, 16, WHITE, BLACK);
+            _prompt->cls();
+            prompt();
+            _prompt->setTextColor(WHITE);
+            _prompt->print((String)*_le);
+            _prompt->invalidate();
+            //_le->draw(80, 224, 240, 16, WHITE, BLACK);
         }
     }
 }

@@ -353,3 +353,31 @@ Canvas::colorFilter(void)
         }
     }
 }
+
+CardputerCanvas::~CardputerCanvas()
+{
+    
+}
+
+void
+CardputerCanvas::pset(uint16_t x, uint16_t y, uint16_t col)
+{
+    if (x >= _w || y >= _h) return;
+    _v[x + y * _w] = col;
+}
+
+void
+CardputerCanvas::cls(uint16_t c)
+{ 
+    for (int i = 0 ; i < _w * _h ; i++) _v[i] = c;
+}
+
+void
+CardputerCanvas::invalidate() const
+{
+    float affine[6] = {0.625, 0.0, (float)(_ox) * 0.625, 0.0, 0.625, (float)(_oy) * 0.625};
+    M5.Display.startWrite();
+    M5.Display.setSwapBytes(true);
+    M5.Display.pushImageAffineWithAA(affine, _w, _h, _v);
+    M5.Display.endWrite();  
+}

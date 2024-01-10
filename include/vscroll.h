@@ -31,11 +31,15 @@ protected:
 public:
     ZVScroll(uint16_t top = 0, uint16_t bottom = 0);
     ZVScroll(const ZVScroll &x);
-    ~ZVScroll();
+    virtual ~ZVScroll();
 
-    int scrollLine();
-    void print(const String &s);
-    void cls(void);
+    virtual int scrollLine();
+    virtual void print(const String &s);
+    virtual void cls(void);
+    virtual void home(void) { _ty = _top; _tx = 0; }
+    virtual void setTextColor(uint16_t c) const { M5.Display.setTextColor(c); }
+    virtual void setFont(const lgfx::v1::IFont *f) const { M5.Display.setFont(f); }
+    virtual void invalidate() const {}
     static const int YMax = 240;
     static const int XMax = 320;
     static const int FontHeight = 16;

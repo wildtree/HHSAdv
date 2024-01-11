@@ -5,6 +5,7 @@
 #include <SD.h>
 #include <Wire.h>
 #include <M5Unified.h>
+#include <M5Cardputer.h>
 #include <graph.h>
 #include <vscroll.h>
 #include <lineeditor.h>
@@ -45,13 +46,10 @@ void setup() {
     // put your setup code here, to run once:
     auto cfg = M5.config();
     cfg.clear_display = true;
-    M5.begin(cfg);
-    M5.Display.setRotation(1);
-    Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
-    // mount SD (need for M5Unified library)
     uint8_t ssPin = M5.getPin(m5::pin_name_t::sd_spi_ss);
     if (M5.getBoard() == m5::board_t::board_M5Cardputer)
     {
+      M5Cardputer.begin(cfg);
       spi.begin(
         M5.getPin(m5::pin_name_t::sd_spi_sclk),
         M5.getPin(m5::pin_name_t::sd_spi_miso),
@@ -61,8 +59,12 @@ void setup() {
     }
     else
     {
+      M5.begin(cfg);
       spi = SPI;
     }
+    M5.Display.setRotation(1);
+    Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
+    // mount SD (need for M5Unified library)
     while (false == SD.begin(ssPin /*GPIO_NUM_4*/, spi, 25000000))
     {
       M5.Display.println("SD Wait ...");

@@ -34,6 +34,7 @@ ZSystem::ZSystem()
             _keyboard = new M5Core2KeyBoard;
             break;
         case m5::board_t::board_M5Cardputer:
+            M5.Display.setSwapBytes(true);
             _cv = new CardputerCanvas(64, 0, 256, 152);
             _zvs = new CardputerScroll(160, 16, 0, 95);
             _prompt = new CardputerScroll(224, 0, 0, 127);
@@ -117,36 +118,22 @@ ZSystem::title(void) const
     }
     _cv->invalidate();
     _zvs->invalidate();
-#if 0
-    _cv->setColorFilter(Canvas::sepiaFilter);
-    _cv->colorFilter();
-#endif
 }
 
 void
 ZSystem::prompt(void) const
 {
-#if 0
-    M5.Display.setCursor(0,224);    
-    M5.Display.setTextColor(GREEN);
-    M5.Display.setFont(&fonts::lgfxJapanGothic_16);
-    M5.Display.print((_mode == Play) ? "どうする?" : "何かキーを押してください。");
-    M5.Display.setTextColor(WHITE);
-    M5.Display.setFont(&fonts::AsciiFont8x16);
-#else
     _prompt->home();
     _prompt->setFont(&fonts::lgfxJapanGothic_16);
     _prompt->setTextColor(GREEN);
     _prompt->print((_mode == Play)? "どうする? " : "何かキーを押してください。");
     _prompt->invalidate();
-#endif
 }
 
 void ZSystem::game_over(void)
 {
     _mode = GameOver;
     _prompt->cls();
-    // M5.Display.fillRect(0,224,320,16,BLACK);
     prompt();
 }
 
@@ -474,12 +461,6 @@ ZSystem::dialog(uint8_t id)
                 _user->setPlace(11,0);
                 _core->mapId(74);
                 _zmap->setCursor(74);
-#if 0
-                _zvs->scrollLine();
-                _zvs->print(_msg->getMessage(0xc8));
-                _zvs->scrollLine();
-                _zvs->print(_msg->getMessage(0xef)); // Finished.
-#endif
                 // play sound #3
             }
             break;
@@ -640,7 +621,7 @@ ZSystem::loop(void)
             }
             else
             {
-                _mode = Title;
+                setMode(Title);
                 title();
                 loadUser("/HHSAdv/data.dat"); // initialize data
             }

@@ -102,7 +102,7 @@ CardputerScroll::CardputerScroll(uint16_t top, uint16_t bottom, int x, int y)
 CardputerScroll::CardputerScroll(const CardputerScroll &x)
     :ZVScroll(x._top, x._bottom), _x(x._x), _y(x._y)
 {
-    _canvas = new M5Canvas(x._canvas);
+    _canvas = new M5Canvas(&M5.Display);
     _canvas->createSprite(XMax, _h);
 }
 

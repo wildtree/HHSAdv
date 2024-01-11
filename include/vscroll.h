@@ -56,12 +56,12 @@ public:
     CardputerScroll(const CardputerScroll &x);
     virtual ~CardputerScroll();
 
-    virtual int scrollLine();
-    virtual void print(const String &s);
-    virtual void cls(void);
-    virtual void setTextColor(uint16_t c) const { _canvas->setTextColor(c); }
-    virtual void setFont(const lgfx::v1::IFont *f) const { _canvas->setFont(f); }
-    virtual void invalidate() const;
+    virtual int scrollLine() override;
+    virtual void print(const String &s) override;
+    virtual void cls(void) override;
+    virtual void setTextColor(uint16_t c) const override { _canvas->setTextColor(c); }
+    virtual void setFont(const lgfx::v1::IFont *f) const override { _canvas->setFont(f); }
+    virtual void invalidate() const override;
 };
 
 #endif /* VSCROLL_H */

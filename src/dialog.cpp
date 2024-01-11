@@ -356,6 +356,6 @@ CardputerDialog::invalidate() const
 {
     float af[] = { 0.67, 0.0, (float)_x, 0.0, 0.67, (float)_y};
     M5.Display.startWrite();
-    _canvas->pushAffine(af);
+    _canvas->pushAffineWithAA(af);
     M5.Display.endWrite();
 }

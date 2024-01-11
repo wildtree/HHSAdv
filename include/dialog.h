@@ -33,12 +33,13 @@ class CardputerButton : public Button
 {
 public:
     CardputerButton(M5Canvas *canvas);
-    CardputerButton(M5Canvas *canvas, int x, int y, int w, int h, const String &label);
+    CardputerButton(M5Canvas *canvas, int x, int y, int w, int h, const String &label, char key);
     virtual ~CardputerButton();
 
     virtual void draw(bool is_pressed = false) const override;
 protected:
     M5Canvas *_canvas;
+    char _key;
 };
 
 class Dialog

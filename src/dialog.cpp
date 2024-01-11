@@ -199,8 +199,8 @@ CardputerButton::CardputerButton(M5Canvas *canvas)
     _touch = false; // Cardputer does not have touch button
 }
 
-CardputerButton::CardputerButton(M5Canvas *canvas, int x, int y, int w, int h, const String &label)
-    : Button(x, y, w, h, label),_canvas(canvas)
+CardputerButton::CardputerButton(M5Canvas *canvas, int x, int y, int w, int h, const String &label, char key)
+    : Button(x, y, w, h, label),_canvas(canvas), _key(key)
 {
     _touch = false;
 }
@@ -234,10 +234,15 @@ CardputerButton::draw(bool is_pressed) const
     }
     auto text_datum = _canvas->getTextDatum();
     auto font = _canvas->getFont();
+    String s = _label;
+    if (s != String(_key))
+    {
+        s = String(_key) + String(". ") + _label;
+    }
     _canvas->setTextDatum(middle_center);
     _canvas->setFont(&fonts::lgfxJapanGothic_16);
     _canvas->setTextColor(col);
-    _canvas->drawString(_label, _x + _w / 2, _y + _h / 2);
+    _canvas->drawString(s, _x + _w / 2, _y + _h / 2);
     _canvas->setFont(font);
     _canvas->setTextDatum(text_datum);
 }
@@ -252,9 +257,9 @@ CardputerDialog::CardputerDialog()
     delete _btnA;
     delete _btnB;
     delete _btnC;
-    _btnA = new CardputerButton(_canvas,9,120,90,20,"A");
-    _btnB = new CardputerButton(_canvas,107,120,90,20,"B");
-    _btnC = new CardputerButton(_canvas,205,120,90,20,"C");
+    _btnA = new CardputerButton(_canvas,9,120,90,20,"A",'1');
+    _btnB = new CardputerButton(_canvas,107,120,90,20,"B",'2');
+    _btnC = new CardputerButton(_canvas,205,120,90,20,"C",'3');
 }
 
 CardputerDialog::~CardputerDialog()

@@ -38,7 +38,7 @@ public:
     virtual void setFont(const lgfx::v1::IFont *f) const { M5.Display.setFont(f); }
     virtual void invalidate() const {}
 
-    void home(void) { _ty = _top; _tx = 0; }
+    virtual void home(void) { _ty = _top; _tx = 0; }
 
     static const int YMax = 240;
     static const int XMax = 320;
@@ -62,6 +62,8 @@ public:
     virtual void setTextColor(uint16_t c) const override { _canvas->setTextColor(c); }
     virtual void setFont(const lgfx::v1::IFont *f) const override { _canvas->setFont(f); }
     virtual void invalidate() const override;
+
+    virtual void home() override { _ty = 0; _tx = 0; }
 };
 
 #endif /* VSCROLL_H */

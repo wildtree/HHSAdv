@@ -105,7 +105,7 @@ ZSystem::loadRules(const String &file)
 void
 ZSystem::title(void) const
 {
-    M5.Display.setTextColor(WHITE);
+    _zvs->setTextColor(WHITE);
 
     _cv->paint(0,0,BLUE,BLUE);
     _zmap->setCursor(76);
@@ -126,7 +126,7 @@ ZSystem::prompt(void) const
     _prompt->home();
     _prompt->setFont(&fonts::lgfxJapanGothic_16);
     _prompt->setTextColor(GREEN);
-    _prompt->print((_mode == Play)? "どうする? " : "何かキーを押してください。");
+    _prompt->print((_mode == Play) ? "どうする? " : "何かキーを押してください。");
     _prompt->invalidate();
 }
 
@@ -321,6 +321,8 @@ ZSystem::draw_screen(bool with_msg)
             _zvs->print(_msg->getMessage(0xb4));
         }
     }
+    _cv->invalidate();
+    _zvs->invalidate();
 }
 
 void
@@ -562,11 +564,11 @@ ZSystem::interpreter(void)
 void
 ZSystem::run(const String &cmd)
 {
-    M5.Display.setTextColor(CYAN);
+    _zvs->setTextColor(CYAN);
     _zvs->scrollLine();
     _zvs->print(">>> ");
     _zvs->print(cmd);
-    M5.Display.setTextColor(WHITE);
+    _zvs->setTextColor(WHITE);
     //_zvs->scrollLine();
     // parse command line
     _core->cmdId(_dict->findVerb(cmd.substring(0, cmd.indexOf(' '))));

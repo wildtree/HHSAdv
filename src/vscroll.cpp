@@ -97,6 +97,7 @@ CardputerScroll::CardputerScroll(uint16_t top, uint16_t bottom, int x, int y)
 {
     _canvas = new M5Canvas(&M5.Display);
     _canvas->createSprite(XMax, _h);
+    cls();
 }
 
 CardputerScroll::CardputerScroll(const CardputerScroll &x)
@@ -104,6 +105,7 @@ CardputerScroll::CardputerScroll(const CardputerScroll &x)
 {
     _canvas = new M5Canvas(&M5.Display);
     _canvas->createSprite(XMax, _h);
+    cls();
 }
 
 CardputerScroll::~CardputerScroll()

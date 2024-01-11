@@ -46,6 +46,7 @@ void setup() {
     // put your setup code here, to run once:
     auto cfg = M5.config();
     cfg.clear_display = true;
+    M5.begin(cfg);
     uint8_t ssPin = M5.getPin(m5::pin_name_t::sd_spi_ss);
     if (M5.getBoard() == m5::board_t::board_M5Cardputer)
     {
@@ -59,7 +60,6 @@ void setup() {
     }
     else
     {
-      M5.begin(cfg);
       spi = SPI;
     }
     M5.Display.setRotation(1);

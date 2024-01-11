@@ -218,18 +218,18 @@ CardputerButton::draw(bool is_pressed) const
     {
         if (is_pressed)
         {
-            _canvas->fillRoundRect(0, 0, _w, _h, 8, BLACK);
+            _canvas->fillRoundRect(_x, _y, _w, _h, 8, BLACK);
             col = WHITE;
         }
         else
         {
-            _canvas->drawRoundRect(0, 0, _w, _h, 8, BLACK);
+            _canvas->drawRoundRect(_x, _y, _w, _h, 8, BLACK);
             col = BLACK;
         }
     }
     else
     {
-        _canvas->fillRoundRect(0, 0, _w, _h, 8, LIGHTGREY);
+        _canvas->fillRoundRect(_x, _y, _w, _h, 8, LIGHTGREY);
         col = DARKGREY;
     }
     auto text_datum = _canvas->getTextDatum();
@@ -237,7 +237,7 @@ CardputerButton::draw(bool is_pressed) const
     _canvas->setTextDatum(middle_center);
     _canvas->setFont(&fonts::lgfxJapanGothic_16);
     _canvas->setTextColor(col);
-    _canvas->drawString(_label, _w / 2, _h / 2);
+    _canvas->drawString(_label, _x + _w / 2, _y + _h / 2);
     _canvas->setFont(font);
     _canvas->setTextDatum(text_datum);
 }
@@ -279,7 +279,7 @@ CardputerDialog::_print() const
                 x = FontWidth;
                 y += _canvas->fontHeight(_canvas->getFont());
             }
-            M5.Display.setCursor(x, y);
+            _canvas->setCursor(x, y);
             if (isascii(c))
             {
                 _canvas->setFont(&fonts::AsciiFont8x16);
@@ -308,7 +308,7 @@ CardputerDialog::draw()
     auto text_datum =_canvas->getTextDatum();
     _canvas->setTextDatum(middle_center);
     _canvas->setTextColor(WHITE);
-    _canvas->drawString(_title, _x + _w / 2, _y + 8);
+    _canvas->drawString(_title, (int)(_x * 0.67) + _w / 2, (int)(_y * 0.67) + 8);
     _canvas->setTextDatum(text_datum);
 
     _print(); // put message
@@ -317,6 +317,7 @@ CardputerDialog::draw()
     _btnA->draw();
     _btnB->draw();
     _btnC->draw();
+    invalidate();
 
     while(true)
     {

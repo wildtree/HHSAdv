@@ -50,7 +50,7 @@ void setup() {
     Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
     // mount SD (need for M5Unified library)
     uint8_t ssPin = M5.getPin(m5::pin_name_t::sd_spi_ss);
-    if (M5.getBoard() == m5::board_t::board_M5StampS3)
+    if (M5.getBoard() == m5::board_t::board_M5Cardputer)
     {
       spi.begin(
         M5.getPin(m5::pin_name_t::sd_spi_sclk),
@@ -77,18 +77,6 @@ void setup() {
     game->loadRules("/HHSAdv/rule.dat");
     game->loadMsgs("/HHSAdv/msg.dat");
 
-#if 0
-    Wire1.begin(); 
-    pinMode(game->KEYBOARD_INT,INPUT);
-    digitalWrite(game->KEYBOARD_INT, HIGH);
-#endif
-#if 0
-    Dialog d;
-    d.setTitle("テスト");
-    d.setMessage("真ん中のボタンを押してください。");
-    d.button(String(), "中", String());
-    d.draw();
-#endif
     game->title(); // draw title
 }
 

@@ -77,14 +77,19 @@ Button::draw(bool is_pressed) const
 }
 
 Dialog::Dialog()
-   : _x(8), _y(8), _w(304), _h(144), _btnA(17,128,90,20,"A"),_btnB(115,128,90,20,"B"),_btnC(213,128,90,20,"C"),_title("dialog"),_result(-1)
+   : _x(8), _y(8), _w(304), _h(144),_title("dialog"),_result(-1)
 {
-    
+    _btnA = new Button(17,128,90,20,"A");
+    _btnB = new Button(115,128,90,20,"B");
+    _btnC = new Button(213,128,90,20,"C");
 }
 
 Dialog::~Dialog()
 {
     dismiss();
+    delete _btnA;
+    delete _btnB;
+    delete _btnC;
 }
 
 
@@ -140,28 +145,28 @@ Dialog::draw(void)
     _print(); // put message
     M5.Display.setFont(font);
 
-    _btnA.draw();
-    _btnB.draw();
-    _btnC.draw();
+    _btnA->draw();
+    _btnB->draw();
+    _btnC->draw();
 
     while(true)
     {
         M5.update();
-        if ((_btnA.is_enabled() && M5.BtnA.isPressed())||_btnA.is_pressed())
+        if ((_btnA->is_enabled() && M5.BtnA.isPressed())||_btnA->is_pressed())
         {
-            _btnA.draw(true);
+            _btnA->draw(true);
             _result = 1;
             break;
         }
-        if ((_btnB.is_enabled() && M5.BtnB.isPressed())||_btnB.is_pressed())
+        if ((_btnB->is_enabled() && M5.BtnB.isPressed())||_btnB->is_pressed())
         {
-            _btnB.draw(true);
+            _btnB->draw(true);
             _result = 2;
             break;
         }
-        if ((_btnC.is_enabled() && M5.BtnC.isPressed())||_btnC.is_pressed())
+        if ((_btnC->is_enabled() && M5.BtnC.isPressed())||_btnC->is_pressed())
         {
-            _btnC.draw(true);
+            _btnC->draw(true);
             _result = 3;
             break;
         }
@@ -179,11 +184,178 @@ Dialog::dismiss()
 void
 Dialog::button(const String &labelA, const String &labelB, const String &labelC)
 {
-    _btnA.setLabel(labelA);
-    _btnB.setLabel(labelB);
-    _btnC.setLabel(labelC);
+    _btnA->setLabel(labelA);
+    _btnB->setLabel(labelB);
+    _btnC->setLabel(labelC);
 
-    if (labelA.isEmpty()) _btnA.disable();
-    if (labelB.isEmpty()) _btnB.disable();
-    if (labelC.isEmpty()) _btnC.disable();
+    if (labelA.isEmpty()) _btnA->disable();
+    if (labelB.isEmpty()) _btnB->disable();
+    if (labelC.isEmpty()) _btnC->disable();
+}
+
+CardputerButton::CardputerButton(M5Canvas *canvas)
+    : Button(), _canvas(canvas)
+{
+    _touch = false; // Cardputer does not have touch button
+}
+
+CardputerButton::CardputerButton(M5Canvas *canvas, int x, int y, int w, int h, const String &label)
+    : Button(x, y, w, h, label),_canvas(canvas)
+{
+    _touch = false;
+}
+ 
+CardputerButton::~CardputerButton()
+{
+
+}
+
+void
+CardputerButton::draw(bool is_pressed) const
+{
+    uint16_t col;
+    if (_enabled)
+    {
+        if (is_pressed)
+        {
+            _canvas->fillRoundRect(0, 0, _w, _h, 8, BLACK);
+            col = WHITE;
+        }
+        else
+        {
+            _canvas->drawRoundRect(0, 0, _w, _h, 8, BLACK);
+            col = BLACK;
+        }
+    }
+    else
+    {
+        _canvas->fillRoundRect(0, 0, _w, _h, 8, LIGHTGREY);
+        col = DARKGREY;
+    }
+    auto text_datum = _canvas->getTextDatum();
+    auto font = _canvas->getFont();
+    _canvas->setTextDatum(middle_center);
+    _canvas->setFont(&fonts::lgfxJapanGothic_16);
+    _canvas->setTextColor(col);
+    _canvas->drawString(_label, _w / 2, _h / 2);
+    _canvas->setFont(font);
+    _canvas->setTextDatum(text_datum);
+}
+
+CardputerDialog::CardputerDialog()
+   : Dialog()
+{
+    _x = 18;
+    _y = 0;
+    _canvas = new M5Canvas(&M5.Display);
+    _canvas->createSprite(_w, _h);
+    delete _btnA;
+    delete _btnB;
+    delete _btnC;
+    _btnA = new CardputerButton(_canvas,9,120,90,20,"A");
+    _btnB = new CardputerButton(_canvas,107,120,90,20,"B");
+    _btnC = new CardputerButton(_canvas,205,120,90,20,"C");
+}
+
+CardputerDialog::~CardputerDialog()
+{
+    delete _canvas;
+}
+void
+CardputerDialog::_print() const
+{
+    int x = 8;
+    int y = 36;
+
+    auto font = _canvas->getFont();
+    _canvas->setTextColor(BLACK);
+    for(int i = 0 ; i < _message.length() ; i++)
+    {
+        uint8_t c = _message[i];
+        if (isascii(c)||c >= 0xc0)
+        {
+            if (x >=_w - FontWidth)
+            {
+                x = FontWidth;
+                y += _canvas->fontHeight(_canvas->getFont());
+            }
+            M5.Display.setCursor(x, y);
+            if (isascii(c))
+            {
+                _canvas->setFont(&fonts::AsciiFont8x16);
+                x += FontWidth;
+            }
+            else
+            {
+                _canvas->setFont(&fonts::lgfxJapanGothic_16);
+                x += FontWidth * 2;
+            }
+        }
+        _canvas->print((char)c);
+    }
+
+}
+
+#include <M5Cardputer.h>
+int
+CardputerDialog::draw()
+{
+    _canvas->fillRect(0, 0, _w, _h, WHITE);
+    _canvas->fillRect(0, 0, _w, 20, BLACK);
+    _canvas->drawRect(0, 0, _w, 20, WHITE);
+    auto font = _canvas->getFont();
+    _canvas->setFont(&fonts::lgfxJapanGothic_16);
+    auto text_datum =_canvas->getTextDatum();
+    _canvas->setTextDatum(middle_center);
+    _canvas->setTextColor(WHITE);
+    _canvas->drawString(_title, _x + _w / 2, _y + 8);
+    _canvas->setTextDatum(text_datum);
+
+    _print(); // put message
+    _canvas->setFont(font);
+
+    _btnA->draw();
+    _btnB->draw();
+    _btnC->draw();
+
+    while(true)
+    {
+        M5Cardputer.update();
+        if (M5Cardputer.Keyboard.isChange())
+        {
+            if (_btnA->is_enabled() && M5Cardputer.Keyboard.isKeyPressed('1'))
+            {
+                _btnA->draw(true);
+                _result = 1;
+                invalidate();
+                break;
+            }
+            if (_btnB->is_enabled() && M5Cardputer.Keyboard.isKeyPressed('2'))
+            {
+                _btnB->draw(true);
+                _result = 2;
+                invalidate();
+                break;
+            }
+            if (_btnC->is_enabled() && M5Cardputer.Keyboard.isKeyPressed('3'))
+            {
+                _btnC->draw(true);
+                _result = 3;
+                invalidate();
+                break;
+            }
+        }
+    }
+    _canvas->fillRect(0, 0, _w, _h, BLACK);
+    invalidate();
+    return _result;
+}
+
+void
+CardputerDialog::invalidate() const
+{
+    float af[] = { 0.67, 0.0, (float)_x, 0.0, 0.67, (float)_y};
+    M5.Display.startWrite();
+    _canvas->pushAffine(af);
+    M5.Display.endWrite();
 }

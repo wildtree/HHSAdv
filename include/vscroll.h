@@ -26,8 +26,6 @@ protected:
     int _h;
     uint16_t *_buf;
 
-    void writeWordData(uint16_t data);
-    void scrollAddress(uint16_t vsp);
 public:
     ZVScroll(uint16_t top = 0, uint16_t bottom = 0);
     ZVScroll(const ZVScroll &x);
@@ -36,14 +34,34 @@ public:
     virtual int scrollLine();
     virtual void print(const String &s);
     virtual void cls(void);
-    virtual void home(void) { _ty = _top; _tx = 0; }
     virtual void setTextColor(uint16_t c) const { M5.Display.setTextColor(c); }
     virtual void setFont(const lgfx::v1::IFont *f) const { M5.Display.setFont(f); }
     virtual void invalidate() const {}
+
+    void home(void) { _ty = _top; _tx = 0; }
+
     static const int YMax = 240;
     static const int XMax = 320;
     static const int FontHeight = 16;
     static const int FontWidth = 8;
+};
+
+class CardputerScroll : public ZVScroll
+{
+protected:
+    int _x, _y;
+    M5Canvas *_canvas;
+public:
+    CardputerScroll(uint16_t top = 0, uint16_t bottom = 0, int x = 0, int y = 0);
+    CardputerScroll(const CardputerScroll &x);
+    virtual ~CardputerScroll();
+
+    virtual int scrollLine();
+    virtual void print(const String &s);
+    virtual void cls(void);
+    virtual void setTextColor(uint16_t c) const { _canvas->setTextColor(c); }
+    virtual void setFont(const lgfx::v1::IFont *f) const { _canvas->setFont(f); }
+    virtual void invalidate() const;
 };
 
 #endif /* VSCROLL_H */

@@ -375,7 +375,7 @@ CardputerCanvas::cls(uint16_t c)
 void
 CardputerCanvas::invalidate() const
 {
-    float affine[6] = {0.625, 0.0, (float)(_ox) * 0.625, 0.0, 0.625, (float)(_oy) * 0.625};
+    float affine[6] = {0.625, 0.0, (float)(_ox * 0.625), 0.0, 0.625, (float)(_oy * 0.625)};
     M5.Display.startWrite();
     M5.Display.setSwapBytes(true);
     M5.Display.pushImageAffineWithAA(affine, _w, _h, _v);

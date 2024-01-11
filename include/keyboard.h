@@ -56,5 +56,21 @@ public:
     static const int INTR = 33;
 };
 
+#include <M5Cardputer.h>
+#include <queue>
+class M5CardputerKeyBoard : public KeyBoard
+{
+protected:
+    std::queue<uint8_t> _buf;
+public:
+    M5CardputerKeyBoard() : KeyBoard(m5::board_t::board_M5StampS3)
+    {
+        M5Cardputer.Keyboard.begin();
+    }
+    virtual ~M5CardputerKeyBoard() { }
+    virtual bool wait_any_key() override;
+    virtual bool fetch_key(uint8_t &c) override;
+};
+
 
 #endif

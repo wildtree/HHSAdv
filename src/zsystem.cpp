@@ -33,8 +33,11 @@ ZSystem::ZSystem()
             _prompt = new ZVScroll(224, 0);
             _keyboard = new M5Core2KeyBoard;
             break;
-        case m5::board_t::board_M5StampS3:
-            // Cardputer
+        case m5::board_t::board_M5Cardputer:
+            _cv = new CardputerCanvas(64, 0, 256, 152);
+            _zvs = new CardputerScroll(160, 16, 0, 95);
+            _prompt = new CardputerScroll(224, 0, 0, 127);
+            _keyboard = new M5CardputerKeyBoard;
             break;
         default:
             break;
@@ -112,6 +115,8 @@ ZSystem::title(void) const
         _zvs->scrollLine();
         _zvs->print(_credit[i]);
     }
+    _cv->invalidate();
+    _zvs->invalidate();
 #if 0
     _cv->setColorFilter(Canvas::sepiaFilter);
     _cv->colorFilter();
@@ -362,23 +367,23 @@ ZSystem::load_game(int f)
 void
 ZSystem::dialog(uint8_t id)
 {
-    Dialog dialog;
+    Dialog *dialog = (M5.getBoard() == m5::board_t::board_M5Cardputer) ? new CardputerDialog() : new Dialog();
     int r;
     switch(id)
     {
         case 0: // boy or girl?
             _user->setFact(0, 1); // default (boy)
-            dialog.setTitle("男子/女子");
-            dialog.setMessage(_msg->getMessage(0xe7));
-            dialog.button("男子","女子",String());
-            _user->setFact(0, dialog.draw());
+            dialog->setTitle("男子/女子");
+            dialog->setMessage(_msg->getMessage(0xe7));
+            dialog->button("男子","女子",String());
+            _user->setFact(0, dialog->draw());
             _core->mapId(3);
             _zmap->setCursor(3);
             break;
         case 1: // file select
-            dialog.setTitle("ファイルを選んでください。");
-            dialog.setMessage(_msg->getMessage(0xe8));
-            dialog.button("1","2","3");
+            dialog->setTitle("ファイルを選んでください。");
+            dialog->setMessage(_msg->getMessage(0xe8));
+            dialog->button("1","2","3");
             if (_core->cmdId() != 0x0f)
             {
                 // load game
@@ -391,7 +396,7 @@ ZSystem::dialog(uint8_t id)
                 }
                 else
                 {
-                    dialog.btnA().disable();
+                    dialog->btnA()->disable();
                 }
                 f = SD.open("/HHSAdv/2.dat",FILE_READ);
                 if (f)
@@ -401,7 +406,7 @@ ZSystem::dialog(uint8_t id)
                 }
                 else
                 {
-                    dialog.btnB().disable();
+                    dialog->btnB()->disable();
                 }
                 f= SD.open("/HHSAdv/3.dat",FILE_READ);
                 if (f)
@@ -411,19 +416,19 @@ ZSystem::dialog(uint8_t id)
                 }
                 else
                 {
-                    dialog.btnC().disable();
+                    dialog->btnC()->disable();
                 }
                 if (!file_exists)
                 {
-                    dialog.setTitle("ファイルがありません");
-                    dialog.setMessage("セーブデータが存在しません。");
-                    dialog.button(String(), "了解", String());
-                    dialog.btnB().enable();
-                    dialog.draw();
+                    dialog->setTitle("ファイルがありません");
+                    dialog->setMessage("セーブデータが存在しません。");
+                    dialog->button(String(), "了解", String());
+                    dialog->btnB()->enable();
+                    dialog->draw();
                     break;
                 }
             }
-            r = dialog.draw();
+            r = dialog->draw();
             if (_core->cmdId() == 0x0f)
             {
                 // save
@@ -436,17 +441,17 @@ ZSystem::dialog(uint8_t id)
             }
             break;
         case 2: // show items
-            dialog.setTitle("持ち物");
+            dialog->setTitle("持ち物");
             // 持ち物リストを作成
-            dialog.setMessage(_user->itemList());
-            dialog.button(String(), "OK", String());
-            dialog.draw();
+            dialog->setMessage(_user->itemList());
+            dialog->button(String(), "OK", String());
+            dialog->draw();
             break;
         case 3: // cut calbe (yellow or red)
-            dialog.setTitle("どちらを切りますか？");
-            dialog.setMessage(_msg->getMessage(0xe9));
-            dialog.button("黄","赤", String());
-            r = dialog.draw();
+            dialog->setTitle("どちらを切りますか？");
+            dialog->setMessage(_msg->getMessage(0xe9));
+            dialog->button("黄","赤", String());
+            r = dialog->draw();
             if (_user->getPlace(11) != 0xff)
             {
                 _zvs->scrollLine();
@@ -481,6 +486,7 @@ ZSystem::dialog(uint8_t id)
         default:
             break;
     }
+    delete dialog;
 }
 
 void

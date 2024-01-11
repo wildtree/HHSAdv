@@ -67,3 +67,46 @@ M5Core2KeyBoard::fetch_key(uint8_t &c)
     }
     return r;
 }
+
+bool
+M5CardputerKeyBoard::wait_any_key()
+{
+    bool r = false;
+    M5Cardputer.update();
+    if (M5Cardputer.Keyboard.isChange())
+    {
+        r = M5Cardputer.Keyboard.isPressed();
+    }
+    return r;
+}
+
+bool
+M5CardputerKeyBoard::fetch_key(uint8_t &c)
+{
+    bool r = false;
+    if (!_buf.empty())
+    {
+        c = _buf.front();
+        _buf.pop();
+        return true;
+    }
+    M5Cardputer.update();
+    if (M5Cardputer.Keyboard.isChange())
+    {
+        if (M5Cardputer.Keyboard.isPressed())
+        {
+            Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+            for(auto i:status.word)
+            {
+                _buf.push(i);
+            }
+            if (status.del) _buf.push(0x08);
+            if (status.enter) _buf.push('\r');
+            c = _buf.front();
+            _buf.pop();
+            
+            r = true;
+        }
+    }
+    return r;
+}

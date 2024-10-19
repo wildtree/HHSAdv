@@ -19,6 +19,7 @@ ZSystem::ZSystem()
 {
     _le = new LineEditor(30);
     _core = new ZCore();
+    Serial.println("Init system.");
     switch (M5.getBoard())
     {
         case m5::board_t::board_M5Stack:
@@ -58,6 +59,25 @@ ZSystem::~ZSystem()
     if (_msg) delete _msg;
     if (_rules) delete _rules;
     if (_keyboard) delete _keyboard;
+}
+
+void
+ZSystem::blekbdchk()
+{
+    M5.update();
+    if (M5.BtnA.wasHold())
+    {
+        _prompt->cls();
+        _prompt->setFont(&fonts::lgfxJapanGothic_16);
+        _prompt->setTextColor(BLUE);
+        _prompt->print("Connecting to BLE Keyboard...");
+        _prompt->invalidate();
+
+        Serial.println("Connect to BLE Keybord.");
+        delete _keyboard;
+        _keyboard = new BTKeyBoard;
+        _prompt->cls();
+    }
 }
 
 bool
@@ -564,6 +584,7 @@ ZSystem::interpreter(void)
 void
 ZSystem::run(const String &cmd)
 {
+    Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
     _zvs->setTextColor(CYAN);
     _zvs->scrollLine();
     _zvs->print(">>> ");
@@ -611,6 +632,7 @@ ZSystem::start(void)
 void
 ZSystem::loop(void)
 {
+    blekbdchk();
     prompt();
     if (_mode != Play)
     {

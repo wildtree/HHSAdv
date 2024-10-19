@@ -41,6 +41,7 @@ protected:
     Mode getMode(void) const { return _mode; }
     void setMode(Mode m) { _mode = m; }
     void dialog(uint8_t id);
+    void blekbdchk();
 public:
     ZSystem();
     ~ZSystem();

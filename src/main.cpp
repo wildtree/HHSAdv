@@ -42,7 +42,9 @@ void operator delete[](void *p)
 }
 #endif
 
-void setup() {
+void 
+setup() 
+{
     // put your setup code here, to run once:
     auto cfg = M5.config();
     cfg.clear_display = true;
@@ -63,7 +65,9 @@ void setup() {
       spi = SPI;
     }
     M5.Display.setRotation(1);
+    Serial.begin(115200);
     Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
+    Serial.printf("KB check: 5 == %d, 33 == %d, LOW == %d\r\n", digitalRead(5), digitalRead(33), LOW);
     // mount SD (need for M5Unified library)
     while (false == SD.begin(ssPin /*GPIO_NUM_4*/, spi, 25000000))
     {
@@ -82,6 +86,8 @@ void setup() {
     game->title(); // draw title
 }
 
-void loop() {
+void 
+loop() 
+{
   game->loop();
 }

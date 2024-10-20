@@ -5,7 +5,9 @@
 #include <SD.h>
 #include <Wire.h>
 #include <M5Unified.h>
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
 #include <M5Cardputer.h>
+#endif
 #include <graph.h>
 #include <vscroll.h>
 #include <lineeditor.h>
@@ -50,6 +52,7 @@ setup()
     cfg.clear_display = true;
     M5.begin(cfg);
     uint8_t ssPin = M5.getPin(m5::pin_name_t::sd_spi_ss);
+  #if defined(CONFIG_IDF_TARGET_ESP32S3)
     if (M5.getBoard() == m5::board_t::board_M5Cardputer)
     {
       M5Cardputer.begin(cfg);
@@ -64,6 +67,9 @@ setup()
     {
       spi = SPI;
     }
+#else
+    spi = SPI;
+#endif
     M5.Display.setRotation(1);
     Serial.begin(115200);
     Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());

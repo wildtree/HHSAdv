@@ -34,6 +34,7 @@ ZSystem::ZSystem()
             _prompt = new ZVScroll(224, 0);
             _keyboard = new M5Core2KeyBoard;
             break;
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
         case m5::board_t::board_M5Cardputer:
             M5.Display.setSwapBytes(true);
             _cv = new CardputerCanvas(64, 0, 256, 152);
@@ -41,6 +42,7 @@ ZSystem::ZSystem()
             _prompt = new CardputerScroll(224, 0, 0, 127);
             _keyboard = new M5CardputerKeyBoard;
             break;
+#endif
         default:
             break;
     }
@@ -376,7 +378,11 @@ ZSystem::load_game(int f)
 void
 ZSystem::dialog(uint8_t id)
 {
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
     Dialog *dialog = (M5.getBoard() == m5::board_t::board_M5Cardputer) ? new CardputerDialog() : new Dialog();
+#else
+    Dialog *dialog = new Dialog();
+#endif
     int r;
     switch(id)
     {

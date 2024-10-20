@@ -354,6 +354,7 @@ Canvas::colorFilter(void)
     }
 }
 
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
 CardputerCanvas::~CardputerCanvas()
 {
     
@@ -380,3 +381,4 @@ CardputerCanvas::invalidate() const
     M5.Display.pushImageAffineWithAA(affine, _w, _h, _v);
     M5.Display.endWrite();  
 }
+#endif

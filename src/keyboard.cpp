@@ -80,6 +80,10 @@ M5Core2KeyBoard::exists()
     return digitalRead(INTR) == LOW;
 }
 
+<<<<<<< HEAD
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+=======
+>>>>>>> 6184c128b3ce090e4c679cb678c516f8563b44cd
 bool
 M5CardputerKeyBoard::wait_any_key()
 {
@@ -129,6 +133,11 @@ M5CardputerKeyBoard::exists()
     return true;
 }
 
+<<<<<<< HEAD
+#endif
+
+=======
+>>>>>>> 6184c128b3ce090e4c679cb678c516f8563b44cd
 // Bluetooth keyboard handler (NimBLE)
 
 const char *BTKeyBoard::HID_SERVICE = "1812";
@@ -162,12 +171,32 @@ const uint8_t BTKeyBoard::_keymap[][96] = {
 
 const uint32_t BTKeyBoard::scanTime = 0 * 1000; // in milliseconds (0 = forever)
 
+<<<<<<< HEAD
+typedef union {
+    struct __attribute__((__packed__))
+    {
+        uint8_t modifiers;
+        uint8_t keys[10];
+    } k1;
+    struct __attribute__((__packed__))
+    {
+        uint8_t modifiers;
+        uint8_t reserved;
+        uint8_t keys[6];
+        uint8_t padding[3];
+    } k2;
+    uint8_t raw[11];
+} keyboard_t;
+
+
+=======
 typedef struct __attribute__((__packed__))
 {
     uint8_t modifiers;
     uint8_t keys[10];
 } keyboard_t;
 
+>>>>>>> 6184c128b3ce090e4c679cb678c516f8563b44cd
 static keyboard_t keyboardReport;
 static std::queue<uint16_t> keybuf;
 
@@ -196,12 +225,33 @@ notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic, uint8_t *pData
         keyboard_t *newKeyReport = (keyboard_t*)pData;
         for (int i = 0 ; i < 10 ; i++)
         {
+<<<<<<< HEAD
+            uint8_t c = newKeyReport->k1.keys[i];
+            if (c == 0) break;
+            if (memchr(&keyboardReport, c, 10) == NULL) keybuf.push((((uint16_t)newKeyReport->k1.modifiers) << 8)|c);
+        }
+        memcpy(&keyboardReport, pData, sizeof(keyboardReport));
+    }
+    else if (pRemoteCharacteristic->getHandle() == 29)
+    {
+        keyboard_t *newKeyReport = (keyboard_t*)pData;
+        if(newKeyReport->k2.modifiers == 3) return;
+        for (int i = 0 ; i < 6 ; i++)
+        {
+            uint8_t c = newKeyReport->k2.keys[i];
+            if (c == 0) break;
+            if (memchr(&keyboardReport, c, 10) == NULL) keybuf.push((((uint16_t)newKeyReport->k2.modifiers) << 8)|c);
+        }
+        memcpy(&keyboardReport, pData, sizeof(keyboardReport));        
+    }
+=======
             uint8_t c = newKeyReport->keys[i];
             if (c == 0) break;
             if (memchr(&keyboardReport, c, 10) == NULL) keybuf.push((((uint16_t)newKeyReport->modifiers) << 8)|c);
         }
         memcpy(&keyboardReport, pData, sizeof(keyboardReport));
     }
+>>>>>>> 6184c128b3ce090e4c679cb678c516f8563b44cd
 }
 
 void
@@ -310,6 +360,42 @@ BTKeyBoard::connectToServer()
             Serial.println("Failed to connect.");
             return false;
         }
+<<<<<<< HEAD
+    }
+    if (!pClient->isConnected() && !pClient->connect(advDevice))
+    {
+        Serial.println("Failed to connect.");
+        return false;
+    }
+    Serial.print("Connected to ");
+    Serial.println(pClient->getPeerAddress().toString().c_str());
+    Serial.print("RSSI: ");
+    Serial.println(pClient->getRssi());
+
+    NimBLERemoteService *pSvc = nullptr;
+
+    if (pSvc = pClient->getService(HID_SERVICE))
+    {
+        std::vector<NimBLERemoteCharacteristic*> *chrvec = pSvc->getCharacteristics(true);
+        for(auto &it: *chrvec)
+        {
+            if (it->getUUID() == NimBLEUUID(HID_REPORT_DATA))
+            {
+                Serial.println(it->toString().c_str());
+                if (it->canNotify())
+                {
+                    Serial.print("    Subcribe this...");
+                    if (!it->subscribe(true, notifyCallback))
+                    {
+                        Serial.println("Subscribe notification failed.");
+                        pClient->disconnect();
+                        return false;
+                    }
+                    Serial.println("Subscribed.");
+                }
+            }
+        }
+=======
         Serial.print("Connected to ");
         Serial.println(pClient->getPeerAddress().toString().c_str());
         Serial.print("RSSI: ");
@@ -339,6 +425,7 @@ BTKeyBoard::connectToServer()
             }
         }
 
+>>>>>>> 6184c128b3ce090e4c679cb678c516f8563b44cd
     }
     
     Serial.println("Done.");

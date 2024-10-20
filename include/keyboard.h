@@ -6,6 +6,7 @@
 
 #include <M5Unified.h>
 #include <Wire.h>
+#include <queue>
 
 class KeyBoard
 {
@@ -59,8 +60,8 @@ public:
     static const int INTR = 33;
 };
 
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
 #include <M5Cardputer.h>
-#include <queue>
 class M5CardputerKeyBoard : public KeyBoard
 {
 protected:
@@ -74,6 +75,55 @@ public:
     virtual bool wait_any_key() override;
     virtual bool fetch_key(uint8_t &c) override;
     virtual bool exists() override;
+<<<<<<< HEAD
+};
+
+#endif
+
+#include <NimBLEDevice.h>
+
+class  ClientCallbacks : public NimBLEClientCallbacks
+{
+    void onConnect(NimBLEClient* pClient) override;
+    void onDisconnect(NimBLEClient* pClient) override;
+    bool onConnParamsUpdateRequest(NimBLEClient* pClient, const ble_gap_upd_params* params) override;
+
+    uint32_t onPassKeyRequest () override;
+    bool onConfirmPIN(uint32_t pin) override;
+    void onAuthenticationComplete(ble_gap_conn_desc *desc) override;
+};
+
+class AdvertisedDeviceCallbacks: public NimBLEAdvertisedDeviceCallbacks
+{
+    void onResult(NimBLEAdvertisedDevice *advertisedDevice) override;
+};
+
+class BTKeyBoard : public KeyBoard
+{
+protected:
+    std::queue<uint8_t> _buf;
+    static const uint8_t _keymap[][96];
+    bool connectToServer();
+    void begin();
+    void update();
+public:
+    BTKeyBoard() : KeyBoard()
+    {
+        begin();
+    }
+    virtual ~BTKeyBoard() {}
+    virtual bool wait_any_key() override;
+    virtual bool fetch_key(uint8_t &c) override;
+    virtual bool exists() override;
+
+    static const char *HID_SERVICE;
+//  static const char *HID_REPORT_MAP;
+    static const char *HID_REPORT_DATA;
+
+    static const uint32_t scanTime;
+};
+
+=======
 };
 
 #include <NimBLEDevice.h>
@@ -119,4 +169,5 @@ public:
     static const uint32_t scanTime;
 };
 
+>>>>>>> 6184c128b3ce090e4c679cb678c516f8563b44cd
 #endif

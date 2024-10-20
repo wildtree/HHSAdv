@@ -193,6 +193,7 @@ Dialog::button(const String &labelA, const String &labelB, const String &labelC)
     if (labelC.isEmpty()) _btnC->disable();
 }
 
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
 CardputerButton::CardputerButton(M5Canvas *canvas)
     : Button(), _canvas(canvas)
 {
@@ -365,3 +366,4 @@ CardputerDialog::invalidate() const
     _canvas->pushAffineWithAA(af);
     M5.Display.endWrite();
 }
+#endif

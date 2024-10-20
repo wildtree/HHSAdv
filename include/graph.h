@@ -75,6 +75,7 @@ public:
 };
 #endif 
 
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
 class CardputerCanvas : public Canvas
 {
 protected:
@@ -87,4 +88,6 @@ public:
     virtual void pset(uint16_t x, uint16_t y, uint16_t col);
     virtual void invalidate() const;
 };
+#endif
+
 #endif /* GRAPH_H */

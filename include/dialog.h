@@ -29,6 +29,7 @@ protected:
     bool _touch;
 };
 
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
 class CardputerButton : public Button
 {
 public:
@@ -41,6 +42,7 @@ protected:
     M5Canvas *_canvas;
     char _key;
 };
+#endif
 
 class Dialog
 {
@@ -70,7 +72,7 @@ public:
     static const int FontWidth = 8;
 };
 
-
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
 class CardputerDialog : public Dialog
 {
 protected:
@@ -84,5 +86,5 @@ public:
     virtual int draw() override;
     virtual void invalidate() const override;
 };
-
+#endif
 #endif

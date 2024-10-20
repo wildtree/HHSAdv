@@ -76,6 +76,49 @@ public:
     virtual bool fetch_key(uint8_t &c) override;
     virtual bool exists() override;
 };
+#endif
 
+#include <NimBLEDevice.h>
+
+class  ClientCallbacks : public NimBLEClientCallbacks
+{
+    void onConnect(NimBLEClient* pClient) override;
+    void onDisconnect(NimBLEClient* pClient) override;
+    bool onConnParamsUpdateRequest(NimBLEClient* pClient, const ble_gap_upd_params* params) override;
+
+    uint32_t onPassKeyRequest () override;
+    bool onConfirmPIN(uint32_t pin) override;
+    void onAuthenticationComplete(ble_gap_conn_desc *desc) override;
+};
+
+class AdvertisedDeviceCallbacks: public NimBLEAdvertisedDeviceCallbacks
+{
+    void onResult(NimBLEAdvertisedDevice *advertisedDevice) override;
+};
+
+class BTKeyBoard : public KeyBoard
+{
+protected:
+    std::queue<uint8_t> _buf;
+    static const uint8_t _keymap[][96];
+    bool connectToServer();
+    void begin();
+    void update();
+public:
+    BTKeyBoard() : KeyBoard()
+    {
+        begin();
+    }
+    virtual ~BTKeyBoard() {}
+    virtual bool wait_any_key() override;
+    virtual bool fetch_key(uint8_t &c) override;
+    virtual bool exists() override;
+
+    static const char *HID_SERVICE;
+//  static const char *HID_REPORT_MAP;
+    static const char *HID_REPORT_DATA;
+
+    static const uint32_t scanTime;
+};
 
 #endif

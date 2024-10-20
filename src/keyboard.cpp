@@ -134,6 +134,7 @@ M5CardputerKeyBoard::exists()
 
 // Bluetooth keyboard handler (NimBLE)
 
+
 const char *BTKeyBoard::HID_SERVICE = "1812";
 //const char *BTKeyBoard::HID_REPORT_MAP = "2A48";
 const char *BTKeyBoard::HID_REPORT_DATA = "2A4D";

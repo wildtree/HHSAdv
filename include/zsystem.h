@@ -15,6 +15,7 @@
 #include <lineeditor.h>
 #include <vscroll.h>
 #include <keyboard.h>
+#include <dialog.h>
 
 class ZSystem
 {
@@ -30,6 +31,7 @@ protected:
     ZMessage *_msg;
     ZRules *_rules;
     KeyBoard *_keyboard;
+    Dialog *_dialog;
 
     static const String _credit[];
     enum Mode {
@@ -42,9 +44,15 @@ protected:
     void setMode(Mode m) { _mode = m; }
     void dialog(uint8_t id);
     void blekbdchk();
-public:
+    void chgscale();
     ZSystem();
     ~ZSystem();
+public:
+    ZSystem(const ZSystem&) = delete;
+    ZSystem &operator=(const ZSystem&) = delete;
+    ZSystem(ZSystem&&) = delete;
+    ZSystem &operator=(ZSystem&&) = delete;
+    static ZSystem &getInstance();
 
     bool loadDict(const String &file);
     bool loadMap(const String &file);
@@ -67,6 +75,8 @@ public:
     void run(const String &cmd);
     void start(void);
     void loop(void);
+
+    KeyBoard *getKeyboard() { return _keyboard; }
 
     static const int KEYBOARD_I2C_ADDR = 0x08;
     static const int KEYBOARD_INT = 33; // For M5 stack GPIO5 / Core2 GPIO33 5;

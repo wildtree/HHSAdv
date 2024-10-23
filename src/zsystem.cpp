@@ -27,12 +27,14 @@ ZSystem::ZSystem()
             _zvs = new ZVScroll(160, 16);
             _prompt = new ZVScroll(224, 0);
             _keyboard = new M5StackKeyBoard;
+            _dialog = new Dialog;
             break;
         case m5::board_t::board_M5StackCore2:
             _cv = new Canvas(32, 8, 256, 152);
             _zvs = new ZVScroll(160, 16);
             _prompt = new ZVScroll(224, 0);
             _keyboard = new M5Core2KeyBoard;
+            _dialog = new Dialog;
             break;
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
         case m5::board_t::board_M5Cardputer:
@@ -41,11 +43,13 @@ ZSystem::ZSystem()
             _zvs = new CardputerScroll(160, 16, 0, 95);
             _prompt = new CardputerScroll(224, 0, 0, 127);
             _keyboard = new M5CardputerKeyBoard;
+            _dialog = new CardputerDialog;
             break;
 #endif
         default:
             break;
     }
+    Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
 }
 
 ZSystem::~ZSystem()
@@ -61,6 +65,16 @@ ZSystem::~ZSystem()
     if (_msg) delete _msg;
     if (_rules) delete _rules;
     if (_keyboard) delete _keyboard;
+    if (_dialog) delete _dialog;
+}
+
+ZSystem &
+ZSystem::getInstance()
+{
+    static ZSystem _self;
+    //Serial.printf("Free heap size: %6d\r\n", esp_get_free_heap_size());
+    //Serial.printf("Singleton: ZSystem: %08x\r\n",&_self);
+    return _self;
 }
 
 void
@@ -80,6 +94,29 @@ ZSystem::blekbdchk()
         _keyboard = new BTKeyBoard;
         _prompt->cls();
     }
+}
+
+void
+ZSystem::chgscale()
+{
+    if (M5.getBoard() == m5::board_t::board_M5Cardputer) return;
+    
+    float s = _cv->getScale();
+    if (s == 1.0) s = 0.75;
+    else if (s == 0.75) s = 0.67;
+    else s = 1.0;
+
+    M5.Display.setColor(BLACK);
+    M5.Display.fillRect(0, 0, M5.Display.width(), M5.Display.height());
+ 
+    _cv->setScale(s);
+    _cv->invalidate(true);
+ 
+    _zvs->setScale(s);
+    _zvs->invalidate();
+ 
+    _prompt->setScale(s);
+    _prompt->invalidate();
 }
 
 bool
@@ -297,9 +334,9 @@ ZSystem::check_darkness(void)
 void
 ZSystem::draw_screen(bool with_msg)
 {
-    Serial.print("check darkness.\r\n");
+    //Serial.print("check darkness.\r\n");
     check_darkness();
-    Serial.print("draw map.\r\n");
+    //Serial.print("draw map.\r\n");
     _zmap->curMapData().draw(_cv);
     _cv->colorFilter();
     //Serial.printf("map_id:%d\r\n", _zmap->getCursor());
@@ -379,9 +416,12 @@ void
 ZSystem::dialog(uint8_t id)
 {
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
-    Dialog *dialog = (M5.getBoard() == m5::board_t::board_M5Cardputer) ? new CardputerDialog() : new Dialog();
+    //Dialog *dialog = (M5.getBoard() == m5::board_t::board_M5Cardputer) ? new CardputerDialog() : new Dialog();
+    Dialog *dialog = _dialog;
 #else
-    Dialog *dialog = new Dialog();
+    float s = _cv->getScale();
+    Dialog *dialog = _dialog; // new Dialog();
+    dialog->setScale(s);
 #endif
     int r;
     switch(id)
@@ -423,7 +463,7 @@ ZSystem::dialog(uint8_t id)
                 {
                     dialog->btnB()->disable();
                 }
-                f= SD.open("/HHSAdv/3.dat",FILE_READ);
+                f = SD.open("/HHSAdv/3.dat",FILE_READ);
                 if (f)
                 {
                     f.close();
@@ -495,7 +535,7 @@ ZSystem::dialog(uint8_t id)
         default:
             break;
     }
-    delete dialog;
+    //delete dialog;
 }
 
 void
@@ -638,12 +678,14 @@ ZSystem::start(void)
 void
 ZSystem::loop(void)
 {
+    //Serial.printf("Stack size = %d\r\n", uxTaskGetStackHighWaterMark(nullptr));
     blekbdchk();
     prompt();
     if (_mode != Play)
     {
         if (_keyboard->wait_any_key())
         {
+            
             if (_mode == Title)
             {
                 playing();
@@ -663,6 +705,12 @@ ZSystem::loop(void)
         uint8_t c;
         if (_keyboard->fetch_key(c))
         {
+            if (c == 7) 
+            {
+                chgscale();
+                return;
+            }
+
             String cmd = _le->putChar(c);
             if (c == '\r')
             {

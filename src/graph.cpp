@@ -59,18 +59,54 @@ Queue::pop()
 
 
 Canvas::Canvas(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
-    : _ox(x), _oy(y), _w(w), _h(h), _colorFilter(nullptr)
+    : _ox(x), _oy(y), _w(w), _h(h), _dx(0), _dy(0), _scale(1.0), _colorFilter(nullptr)
 {
+#ifdef ZRGB332
+    _v = new uint8_t [_w * _h];
+#else
     _v = new uint16_t [_w * _h];
+#endif
+    float sx = 1.0;
+    if (M5.Display.width() < 320)
+    {
+        sx = (float)M5.Display.width();
+        sx /= 320.0;
+    }
+    float sy = 1.0;
+    if (M5.Display.height() < 240)
+    {
+        sy = (float)M5.Display.height();
+        sy /= 240.0;
+    }
+    if (sx != 1.0 || sy != 1.0)
+    {
+        _scale = (sx < sy) ? sx : sy;
+        _dx = (uint16_t)((float)M5.Display.width() * (1.0 - _scale) / 2.0);
+        _dy = (uint16_t)((float)M5.Display.height() * (1.0 - _scale) / 2.0);
+    }
     cls();
+#if 0
+    Serial.println("Color test:");
+    for (int i = 0; i < 8 ; i++)
+    {
+        Serial.printf(" %d: %4x %2x %4x\r\n", i, _col[i], col16to8(_col[i]), col8to16(col16to8(_col[i])));
+    }
+    Serial.println("done.");
+#endif
 }
 
+#if 0
 Canvas::Canvas(const Canvas &x)
-    : _ox(x._ox), _oy(x._oy), _w(x._w), _h(x._h), _colorFilter(x._colorFilter)
+    : _ox(x._ox), _oy(x._oy), _w(x._w), _h(x._h), _dx(x._dx), _dy(x._dy), _scale(x._scale), _colorFilter(x._colorFilter)
 {
+#ifdef ZRGB332
+    _v = new uint8_t [_w * _h];
+#else
     _v = new uint16_t [_w * _h];
+#endif
     cls();
 }
+#endif
 
 Canvas::~Canvas()
 {
@@ -94,16 +130,28 @@ void
 Canvas::pset(uint16_t x, uint16_t y, uint16_t col)
  {
     if (x >= _w || y >= _h) return;
-    M5.Display.drawPixel(_ox + x, _oy + y, col);
+    if (_scale == 1.0) M5.Display.drawPixel(_ox + x, _oy + y, col);
+#ifdef ZRGB332
+    //Serial.printf("col16to8(%4x) = %2x\r\n", col, col16to8(col));
+    _v[x + y * _w] = col16to8(col);
+#else
     _v[x + y * _w] = col;
+#endif
 }
 
 void
 Canvas::cls(uint16_t c)
  { 
-    M5.Display.fillRect(_ox, _oy, _w, _h, c); 
+    if (_scale == 1.0) M5.Display.fillRect(_ox, _oy, _w, _h, c); 
     //memset(_v, c, _w * _h);
-    for (int i = 0 ; i < _w * _h ; i++) _v[i] = c;
+    for (int i = 0 ; i < _w * _h ; i++)
+    {
+#ifdef ZRGB332
+        _v[i] = col16to8(c);
+#else
+        _v[i] = c;
+#endif
+    }
  }
 
 void
@@ -354,6 +402,24 @@ Canvas::colorFilter(void)
     }
 }
 
+void
+Canvas::invalidate(bool force) const
+{
+    M5.Display.startWrite();
+    if (_scale == 1.0) {
+        if (force)
+        {
+            M5.Display.pushImage(_ox, _oy, _w, _h, _v);
+        }
+    }
+    else
+    {
+        float affine[6] = {_scale, 0.0, (float)(_ox + _dx), 0.0, _scale, (float)(_oy + _dy)};
+        M5.Display.pushImageAffineWithAA(affine, _w, _h, _v);
+    }
+    M5.Display.endWrite();  
+}
+
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
 CardputerCanvas::~CardputerCanvas()
 {
@@ -374,7 +440,7 @@ CardputerCanvas::cls(uint16_t c)
 }
 
 void
-CardputerCanvas::invalidate() const
+CardputerCanvas::invalidate(bool force) const
 {
     float affine[6] = {0.625, 0.0, (float)(_ox * 0.625), 0.0, 0.625, (float)(_oy * 0.625)};
     M5.Display.startWrite();

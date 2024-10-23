@@ -59,7 +59,7 @@ ZObjectData::_draw(Canvas *cv, bool pre, int ofst)
     int xs = (int)(_v[o++] & 0xff) / 2;
     int ys = (int)(_v[o++] & 0xff);
 
-    if (pre) b = 0xce40; // OLIVE; (192,192,0) --> rgb565
+    if (pre) b = 0xfc9f; // 0xce40; // OLIVE; (192,192,0) --> rgb565
     
     o = _drawOutline(cv, o, b, xs, ys);
     int x0 = (int)(_v[o++] & 0xff);
@@ -106,7 +106,7 @@ ZTeacherData::draw(Canvas *cv, bool offset)
     for (int j = 0 ; r1[j] != 0xffff ; j++)
     {
         c = _col[(int)(_v[i++] & 0xff)];
-        if (c == RED) c = MAROON;
+        if (c == RED) c = 0xf81f; //MAROON;
         x0 = (int)(_v[i++] & 0xff);
         y0 = (int)(_v[i++] & 0xff);
         for (int k = 0 ; k <= r1[j] + 1 ; k++)

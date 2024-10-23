@@ -357,17 +357,17 @@ BTKeyBoard::connectToServer()
         {
             if (it->getUUID() == NimBLEUUID(HID_REPORT_DATA))
             {
-                Serial.println(it->toString().c_str());
-                if (it->canNotify())
+                //Serial.println(it->toString().c_str());
+                if (it->canNotify() && (it->getHandle() == 41||it->getHandle() == 29))
                 {
-                    Serial.print("    Subcribe this...");
+                    //Serial.print("    Subcribe this...");
                     if (!it->subscribe(true, notifyCallback))
                     {
                         Serial.println("Subscribe notification failed.");
                         pClient->disconnect();
                         return false;
                     }
-                    Serial.println("Subscribed.");
+                    //Serial.println("Subscribed.");
                 }
             }
         }

@@ -19,7 +19,7 @@
 #include <zsystem.h>
 #include <dialog.h>
 
-static ZSystem *game = NULL; // game system
+//static ZSystem game = ZSystem::getInstance(); // game system
 static SPIClass spi; // spi is not allowed as local variable
 
 #if 0
@@ -81,19 +81,19 @@ setup()
       delay(500);
     }
     M5.Display.clear(BLACK);
-    game = new ZSystem();
-    game->loadDict("/HHSAdv/highds.com");
-    game->loadMap("/HHSAdv/map.dat");
-    game->loadObjs("/HHSAdv/thin.dat");
-    game->loadUser("/HHSAdv/data.dat");
-    game->loadRules("/HHSAdv/rule.dat");
-    game->loadMsgs("/HHSAdv/msg.dat");
+    //game = new ZSystem();
+    ZSystem::getInstance().loadDict("/HHSAdv/highds.com");
+    ZSystem::getInstance().loadMap("/HHSAdv/map.dat");
+    ZSystem::getInstance().loadObjs("/HHSAdv/thin.dat");
+    ZSystem::getInstance().loadUser("/HHSAdv/data.dat");
+    ZSystem::getInstance().loadRules("/HHSAdv/rule.dat");
+    ZSystem::getInstance().loadMsgs("/HHSAdv/msg.dat");
 
-    game->title(); // draw title
+    ZSystem::getInstance().title(); // draw title
 }
 
 void 
 loop() 
 {
-  game->loop();
+  ZSystem::getInstance().loop();
 }

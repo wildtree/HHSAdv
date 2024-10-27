@@ -2,6 +2,7 @@
  * ZMapData
  */
 
+#include <zsystem.h>
 #include <zmap.h>
 
 const static String _emptyString = String();

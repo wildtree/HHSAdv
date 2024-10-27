@@ -8,7 +8,9 @@
 #include <M5Unified.h>
 #include <queue>
 
+#ifndef CONFIG_IDF_TARGET_ESP32S3
 #define ZRGB332
+#endif
 
 class Canvas
 {
@@ -87,8 +89,8 @@ public:
     float getScale() const { return _scale; }
     void setScale(float scale) { 
         _scale = scale; 
-        _dx = (M5.Display.width() - (uint16_t)(320.0 * _scale)) / 2;
-        _dy = (M5.Display.height() - (uint16_t)(240.0 * _scale)) / 2;
+        _dx = (M5.Displays(0).width() - (uint16_t)(320.0 * _scale)) / 2;
+        _dy = (M5.Displays(0).height() - (uint16_t)(240.0 * _scale)) / 2;
     }
 
     static const float blueFilter[], redFilter[], sepiaFilter[];

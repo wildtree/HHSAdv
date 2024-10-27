@@ -2,6 +2,7 @@
  * ZWords -- HighHigh School Adventure Words Dictionary
  */
 
+#include <zsystem.h>
 #include <zwords.h>
 
 ZWord::ZWord(const char b[])

@@ -89,11 +89,11 @@ Dialog::Dialog()
     _btnA = new Button(  9,120,90,20,"A",'1', _canvas);
     _btnB = new Button(107,120,90,20,"B",'2', _canvas);
     _btnC = new Button(205,120,90,20,"C",'3', _canvas);
-    float sx = (M5.Display.width() < 320.0) ? (float)M5.Display.width() / 320.0 : 1.0;
-    float sy = (M5.Display.height() < 240.0) ? (float)M5.Display.height() / 240.0 : 1.0;
+    float sx = (M5.Displays(0).width() < 320.0) ? (float)M5.Displays(0).width() / 320.0 : 1.0;
+    float sy = (M5.Displays(0).height() < 240.0) ? (float)M5.Displays(0).height() / 240.0 : 1.0;
     _scale = (sx < sy) ? sx : sy;
-    _dx = (uint16_t)(M5.Display.width() - (uint16_t)(320.0 * _scale)) / 2;
-    _dy = (uint16_t)(M5.Display.height() - (uint16_t)(240.0 * _scale)) / 2;
+    _dx = (uint16_t)(M5.Displays(0).width() - (uint16_t)(320.0 * _scale)) / 2;
+    _dy = (uint16_t)(M5.Displays(0).height() - (uint16_t)(240.0 * _scale)) / 2;
 }
 
 Dialog::~Dialog()
@@ -144,8 +144,8 @@ void
 Dialog::setScale(float scale)
 {
     _scale = scale;
-    _dx = (uint16_t)(M5.Display.width() - (uint16_t)(320.0 * _scale)) / 2;
-    _dy = (uint16_t)(M5.Display.height() - (uint16_t)(240.0 * _scale)) / 2;
+    _dx = (uint16_t)(M5.Displays(0).width() - (uint16_t)(320.0 * _scale)) / 2;
+    _dy = (uint16_t)(M5.Displays(0).height() - (uint16_t)(240.0 * _scale)) / 2;
 }
 
 int
@@ -241,12 +241,13 @@ Dialog::invalidate() const
 
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
 CardputerButton::CardputerButton(M5Canvas *canvas)
-    : Button(), _canvas(canvas)
+    : Button()
 {
     _touch = false; // Cardputer does not have touch button
+    _canvas = canvas;
 }
 
-CardputerButton::CardputerButton(int x, int y, int w, int h, const String &label, char key, M5Canvas *canvas)
+CardputerButton::CardputerButton(int x, int y, int w, int h, const String &label, uint8_t key, M5Canvas *canvas)
     : Button(x, y, w, h, label, key, canvas)
 {
     _touch = false;
@@ -282,9 +283,9 @@ CardputerButton::draw(bool is_pressed) const
     auto text_datum = _canvas->getTextDatum();
     auto font = _canvas->getFont();
     String s = _label;
-    if (s != String(_key))
+    if (s != String((char)_key))
     {
-        s = String(_key) + String(". ") + _label;
+        s = String((char)_key) + String(". ") + _label;
     }
     _canvas->setTextDatum(middle_center);
     _canvas->setFont(&fonts::lgfxJapanGothic_16);

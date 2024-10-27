@@ -2,6 +2,7 @@
  * ZObject Data
  */
 
+#include <zsystem.h>
 #include <zobjdata.h>
 
 const uint16_t ZObjectData::_col[] = {

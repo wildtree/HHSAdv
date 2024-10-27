@@ -45,8 +45,8 @@ public:
     virtual void setScale(float scale) { 
         cls();
         _scale = scale; 
-        _x = (M5.Display.width() - (uint16_t)(XMax * _scale)) / 2;
-        _y = (M5.Display.height() - (uint16_t)(YMax * _scale)) / 2 + _top * _scale;
+        _x = (M5.Displays(0).width() - (uint16_t)(XMax * _scale)) / 2;
+        _y = (M5.Displays(0).height() - (uint16_t)(YMax * _scale)) / 2 + _top * _scale;
         invalidate();
     }
     virtual float getScale() const { return _scale; }

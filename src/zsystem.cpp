@@ -22,6 +22,7 @@ ZSystem::ZSystem()
     Serial.println("Init system.");
     switch (M5.getBoard())
     {
+#ifndef M5ATOM_LITE
         case m5::board_t::board_M5Stack:
             _cv = new Canvas(32, 8, 256, 152);
             _zvs = new ZVScroll(160, 16);
@@ -36,6 +37,16 @@ ZSystem::ZSystem()
             _keyboard = new M5Core2KeyBoard;
             _dialog = new Dialog;
             break;
+#else
+        case m5::board_t::board_M5Atom: // Special thanks to @shikarunochi san!!
+            M5.Display.setSwapBytes(true);
+            _cv = new Canvas(32, 8, 256, 152);
+            _zvs = new ZVScroll(160, 16);
+            _prompt = new ZVScroll(224, 0);
+            _keyboard = new M5StackKeyBoard; // dummy -- BT keyboard should be used
+            _dialog = new Dialog;
+            break;
+#endif
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
         case m5::board_t::board_M5Cardputer:
             M5.Display.setSwapBytes(true);
@@ -107,7 +118,7 @@ ZSystem::chgscale()
     else s = 1.0;
 
     M5.Display.setColor(BLACK);
-    M5.Display.fillRect(0, 0, M5.Display.width(), M5.Display.height());
+    M5.Display.fillRect(0, 0, M5.Displays(0).width(), M5.Displays(0).height());
  
     _cv->setScale(s);
     _cv->invalidate(true);

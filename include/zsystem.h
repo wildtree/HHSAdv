@@ -5,7 +5,11 @@
 #if !defined(ZSYSTEM_H)
 #define ZSYSTEM_H
 
+#ifdef M5ATOM_LITE
+#include <SPIFFS.h>
+#else
 #include <SD.h>
+#endif
 #include <M5Unified.h>
 #include <zmap.h>
 #include <zobjdata.h>
@@ -16,6 +20,10 @@
 #include <vscroll.h>
 #include <keyboard.h>
 #include <dialog.h>
+
+#ifdef M5ATOM_LITE
+#define SD SPIFFS
+#endif
 
 class ZSystem
 {

@@ -16,20 +16,20 @@ ZVScroll::ZVScroll(uint16_t top, uint16_t bottom)
     _canvas->setColorDepth(8);
     _canvas->createSprite(XMax, _h);
     float sx = 1.0;
-    if (M5.Display.width() < XMax)
+    if (M5.Displays(0).width() < XMax)
     {
-        sx = (float)M5.Display.width();
+        sx = (float)M5.Displays(0).width();
         sx /= (float)XMax;
     }
     float sy = 1.0;
-    if (M5.Display.height() < YMax)
+    if (M5.Displays(0).height() < YMax)
     {
-        sy = (float)M5.Display.height();
+        sy = (float)M5.Displays(0).height();
         sy /= (float)YMax;
     }
     _scale = (sx < sy) ? sx : sy;
-    _x = (uint16_t)(M5.Display.width() - (uint16_t)(XMax * _scale)) / 2;
-    _y = (uint16_t)(M5.Display.height() - (uint16_t)(YMax * _scale)) / 2 + _top * _scale;
+    _x = (uint16_t)(M5.Displays(0).width() - (uint16_t)(XMax * _scale)) / 2;
+    _y = (uint16_t)(M5.Displays(0).height() - (uint16_t)(YMax * _scale)) / 2 + _top * _scale;
     cls();
 }
 #if 0
@@ -140,7 +140,7 @@ ZVScroll::invalidate() const
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
 // Cardpiuter
 CardputerScroll::CardputerScroll(uint16_t top, uint16_t bottom, int x, int y)
-    :ZVScroll(top, bottom), _x(x), _y(y), _scale(0.5)
+    :ZVScroll(top, bottom)
 {
 #if 0
     _canvas = new M5Canvas(&M5.Display);
@@ -148,6 +148,9 @@ CardputerScroll::CardputerScroll(uint16_t top, uint16_t bottom, int x, int y)
     _canvas->createSprite(XMax, _h);
     cls();
 #endif
+    _x = x;
+    _y = y;
+    _scale = 0.5;
 }
 #if 0
 CardputerScroll::CardputerScroll(const CardputerScroll &x)

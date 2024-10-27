@@ -2,6 +2,7 @@
  * ZRule
  */
 
+#include <zsystem.h>
 #include <zrule.h>
 #include <zuserdata.h>
 #include <vscroll.h>

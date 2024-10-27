@@ -2,6 +2,7 @@
  * User Data
  */
 
+#include <zsystem.h>
 #include <zuserdata.h>
 
 const String ZUserData::item_labels[] = {

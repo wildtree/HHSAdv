@@ -66,24 +66,28 @@ Canvas::Canvas(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 #else
     _v = new uint16_t [_w * _h];
 #endif
-    float sx = 1.0;
-    if (M5.Display.width() < 320)
+#if 0
+    for (int i = 0 ; i < M5.getDisplayCount() ; i++)
     {
-        sx = (float)M5.Display.width();
+        Serial.printf("Display(%d) = (%d, %d)\r\n", i, M5.Displays(i).width(), M5.Displays(i).height());
+    }
+#endif
+    float sx = 1.0;
+    if (M5.Displays(0).width() < 320)
+    {
+        sx = (float)M5.Displays(0).width();
         sx /= 320.0;
     }
     float sy = 1.0;
-    if (M5.Display.height() < 240)
+    if (M5.Displays(0).height() < 240)
     {
-        sy = (float)M5.Display.height();
+        sy = (float)M5.Displays(0).height();
         sy /= 240.0;
     }
-    if (sx != 1.0 || sy != 1.0)
-    {
-        _scale = (sx < sy) ? sx : sy;
-        _dx = (uint16_t)((float)M5.Display.width() * (1.0 - _scale) / 2.0);
-        _dy = (uint16_t)((float)M5.Display.height() * (1.0 - _scale) / 2.0);
-    }
+    _scale = (sx < sy) ? sx : sy;
+    _dx = (M5.Displays(0).width() - (uint16_t)(320.0 * _scale)) / 2;
+    _dy = (M5.Displays(0).height() - (uint16_t)(240.0 * _scale)) / 2;
+    Serial.printf("scale= %d (%d,%d)\r\n", (uint32_t)(_scale*1000.0),_dx,_dy);
     cls();
 #if 0
     Serial.println("Color test:");
@@ -405,6 +409,7 @@ Canvas::colorFilter(void)
 void
 Canvas::invalidate(bool force) const
 {
+    Serial.printf("inv: scale = %d\r\n",(uint32_t)(_scale * 1000.0));
     M5.Display.startWrite();
     if (_scale == 1.0) {
         if (force)
@@ -414,7 +419,7 @@ Canvas::invalidate(bool force) const
     }
     else
     {
-        float affine[6] = {_scale, 0.0, (float)(_ox + _dx), 0.0, _scale, (float)(_oy + _dy)};
+        float affine[6] = {_scale, 0.0, (float)(_ox * _scale + _dx), 0.0, _scale, (float)(_oy * _scale + _dy)};
         M5.Display.pushImageAffineWithAA(affine, _w, _h, _v);
     }
     M5.Display.endWrite();  

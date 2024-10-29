@@ -213,19 +213,19 @@ notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic, uint8_t *pData
         {
             uint8_t c = newKeyReport->k1.keys[i];
             if (c == 0) break;
-            if (memchr(&keyboardReport, c, 10) == NULL) keybuf.push((((uint16_t)newKeyReport->k1.modifiers) << 8)|c);
+            if (memchr(&keyboardReport.k1.keys, c, 10) == NULL) keybuf.push((((uint16_t)newKeyReport->k1.modifiers) << 8)|c);
         }
         memcpy(&keyboardReport, pData, sizeof(keyboardReport));
     }
     else if (pRemoteCharacteristic->getHandle() == 29)
     {
         keyboard_t *newKeyReport = (keyboard_t*)pData;
-        if(newKeyReport->k2.modifiers == 3) return;
+        //if(newKeyReport->k2.modifiers == 3) return;
         for (int i = 0 ; i < 6 ; i++)
         {
             uint8_t c = newKeyReport->k2.keys[i];
             if (c == 0) break;
-            if (memchr(&keyboardReport, c, 10) == NULL) keybuf.push((((uint16_t)newKeyReport->k2.modifiers) << 8)|c);
+            if (memchr(&keyboardReport.k2.keys, c, 6) == NULL) keybuf.push((((uint16_t)newKeyReport->k2.modifiers) << 8)|c);
         }
         memcpy(&keyboardReport, pData, sizeof(keyboardReport));        
     }

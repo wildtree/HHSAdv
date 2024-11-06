@@ -206,28 +206,36 @@ notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic, uint8_t *pData
     Serial.print("\r\n");
 #endif
     // handle: 41 -- key / 51 -- media key
-    if (pRemoteCharacteristic->getHandle() == 41)
+    switch (pRemoteCharacteristic->getHandle())
     {
-        keyboard_t *newKeyReport = (keyboard_t*)pData;
-        for (int i = 0 ; i < 10 ; i++)
-        {
-            uint8_t c = newKeyReport->k1.keys[i];
-            if (c == 0) break;
-            if (memchr(&keyboardReport.k1.keys, c, 10) == NULL) keybuf.push((((uint16_t)newKeyReport->k1.modifiers) << 8)|c);
-        }
-        memcpy(&keyboardReport, pData, sizeof(keyboardReport));
-    }
-    else if (pRemoteCharacteristic->getHandle() == 29)
-    {
-        keyboard_t *newKeyReport = (keyboard_t*)pData;
-        //if(newKeyReport->k2.modifiers == 3) return;
-        for (int i = 0 ; i < 6 ; i++)
-        {
-            uint8_t c = newKeyReport->k2.keys[i];
-            if (c == 0) break;
-            if (memchr(&keyboardReport.k2.keys, c, 6) == NULL) keybuf.push((((uint16_t)newKeyReport->k2.modifiers) << 8)|c);
-        }
-        memcpy(&keyboardReport, pData, sizeof(keyboardReport));        
+        case 22:
+        case 29:
+        case 41:
+            if (length != 8 && length != 11) return; // not key data interface (maybe)
+            keyboard_t *newKeyReport = (keyboard_t*)pData;
+            int buflen = 6;
+            uint8_t *buf = keyboardReport.k2.keys;
+            uint8_t *input = newKeyReport->k2.keys;
+            uint8_t mod = newKeyReport->k2.modifiers;
+            if (length == 11)
+            {
+                buflen = 10;
+                buf = keyboardReport.k1.keys;
+                input = newKeyReport->k1.keys;
+                mod = newKeyReport->k1.modifiers;     
+            }
+            for (int i = 0 ; i < buflen ; i++)
+            {
+                uint8_t c = input[i];
+                if (c == 0) break;
+                if (memchr(buf, c, buflen) == NULL) keybuf.push(((uint16_t)mod << 8)|c);
+            }
+            memcpy(&keyboardReport, pData, length);
+            break;
+#if 0
+        default:
+            break;
+#endif
     }
 }
 
@@ -282,6 +290,7 @@ ClientCallbacks::onAuthenticationComplete(ble_gap_conn_desc *desc)
 static NimBLEAdvertisedDevice *advDevice = nullptr;
 static bool doConnect = false;
 
+
 void
 AdvertisedDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
 {
@@ -311,6 +320,10 @@ BTKeyBoard::connectToServer()
                 Serial.println("Failed to reconnect.");
                 return false;
             }
+            if (!pClient->secureConnection())
+            {
+                Serial.println("Failed to establish secure connection.");
+            }
             Serial.println("Reconnected.");
         }
         else
@@ -337,11 +350,25 @@ BTKeyBoard::connectToServer()
             Serial.println("Failed to connect.");
             return false;
         }
+        if (!pClient->secureConnection())
+        {
+            Serial.println("Failed to establish secure connection.");
+            return false;
+        }
+
     }
-    if (!pClient->isConnected() && !pClient->connect(advDevice))
+    if (!pClient->isConnected())
     {
-        Serial.println("Failed to connect.");
-        return false;
+        if (!pClient->connect(advDevice))
+        {
+            Serial.println("Failed to connect.");
+            return false;
+        }
+        if (!pClient->secureConnection())
+        {
+            Serial.println("Failed to establish secure connection.");
+            return false;
+        }
     }
     Serial.print("Connected to ");
     Serial.println(pClient->getPeerAddress().toString().c_str());
@@ -358,7 +385,7 @@ BTKeyBoard::connectToServer()
             if (it->getUUID() == NimBLEUUID(HID_REPORT_DATA))
             {
                 //Serial.println(it->toString().c_str());
-                if (it->canNotify() && (it->getHandle() == 41||it->getHandle() == 29))
+                if (it->canNotify() /*&& (it->getHandle() == 41||it->getHandle() == 29)*/)
                 {
                     //Serial.print("    Subcribe this...");
                     if (!it->subscribe(true, notifyCallback))
@@ -381,7 +408,7 @@ void
 BTKeyBoard::begin()
 {
     NimBLEDevice::init("");
-    NimBLEDevice::setSecurityAuth(false, false, true);
+    NimBLEDevice::setSecurityAuth(true, true, true);
     NimBLEDevice::setPower(ESP_PWR_LVL_P9);
     NimBLEScan *pScan = NimBLEDevice::getScan();
     pScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());

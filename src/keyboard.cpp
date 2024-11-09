@@ -134,6 +134,7 @@ M5CardputerKeyBoard::exists()
 
 // Bluetooth keyboard handler (NimBLE)
 
+static volatile bool connected = false;
 
 const char *BTKeyBoard::HID_SERVICE = "1812";
 //const char *BTKeyBoard::HID_REPORT_MAP = "2A48";
@@ -245,14 +246,15 @@ ClientCallbacks::onConnect(NimBLEClient* pClient)
     Serial.println("BLE Device connected.");
     memset(&keyboardReport, 0, sizeof(keyboardReport));
     pClient->updateConnParams(120, 120, 0, 60);
+    connected = true;
 }
 
 void
 ClientCallbacks::onDisconnect(NimBLEClient* pClient)
 {
     Serial.print(pClient->getPeerAddress().toString().c_str());
-    Serial.println(" disconnected - Starting scan");
-    NimBLEDevice::getScan()->start(BTKeyBoard::scanTime);
+    Serial.println(" disconnected");
+    connected = false;
 }
 
 bool
@@ -409,12 +411,14 @@ BTKeyBoard::begin()
 {
     NimBLEDevice::init("");
     NimBLEDevice::setSecurityAuth(true, true, true);
+    //NimBLEDevice::setSecurityIOCap(BLE_HS_IO_KEYBOARD_ONLY);
     NimBLEDevice::setPower(ESP_PWR_LVL_P9);
     NimBLEScan *pScan = NimBLEDevice::getScan();
     pScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
     pScan->setInterval(45);
     pScan->setWindow(15);
     pScan->setActiveScan(true);
+    //pScan->setDuplicateFilter(true);
     //Serial.printf("Scan %d millisecond(s).\r\n", scanTime);
     pScan->start(scanTime);
 }
@@ -429,6 +433,11 @@ BTKeyBoard::update()
         {
             NimBLEDevice::getScan()->start(scanTime);
         }
+    }
+    if (!connected)
+    {
+        Serial.println("Start scan.");
+        NimBLEDevice::getScan()->start(scanTime);
     }
     while (!keybuf.empty())
     {

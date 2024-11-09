@@ -228,7 +228,7 @@ notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic, uint8_t *pData
             for (int i = 0 ; i < buflen ; i++)
             {
                 uint8_t c = input[i];
-                if (c == 0) break;
+                //if (c == 0) break;
                 if (memchr(buf, c, buflen) == NULL) keybuf.push(((uint16_t)mod << 8)|c);
             }
             memcpy(&keyboardReport, pData, length);

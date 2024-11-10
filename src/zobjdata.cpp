@@ -107,7 +107,7 @@ ZTeacherData::draw(Canvas *cv, bool offset)
     for (int j = 0 ; r1[j] != 0xffff ; j++)
     {
         c = _col[(int)(_v[i++] & 0xff)];
-        if (c == RED) c = 0xf81f; //MAROON;
+        //if (c == RED) c = 0xf81f; //MAROON;
         x0 = (int)(_v[i++] & 0xff);
         y0 = (int)(_v[i++] & 0xff);
         for (int k = 0 ; k <= r1[j] + 1 ; k++)

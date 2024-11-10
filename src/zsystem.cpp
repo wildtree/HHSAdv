@@ -91,6 +91,7 @@ ZSystem::getInstance()
 void
 ZSystem::blekbdchk()
 {
+    if (_keyboard->keyboard_type() == KeyBoard::ble) return; // BLE keyboard in use.
     M5.update();
     if (M5.BtnA.wasHold())
     {

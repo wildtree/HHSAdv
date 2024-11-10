@@ -136,10 +136,12 @@ M5CardputerKeyBoard::exists()
 
 static volatile bool connected = false;
 
+static const int MAX_KEYCODE = 96;
+
 const char *BTKeyBoard::HID_SERVICE = "1812";
 //const char *BTKeyBoard::HID_REPORT_MAP = "2A48";
 const char *BTKeyBoard::HID_REPORT_DATA = "2A4D";
-const uint8_t BTKeyBoard::_keymap[][96] = {
+const uint8_t BTKeyBoard::_keymap[][MAX_KEYCODE] = {
     {    0,   0,   0,   0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
        'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
        '3', '4', '5', '6', '7', '8', '9', '0',  13,  27,   8,   9, ' ', '-', '=', '[',
@@ -443,9 +445,13 @@ BTKeyBoard::update()
     {
         uint16_t k = keybuf.front();
         uint8_t  m = (uint8_t)(k >> 8) & 3;
+        k &= 0xff;
         if (m == 3) m = 1;
-        uint8_t  c = _keymap[m][k & 0xff];
-        if (c) _buf.push(c);
+        if (k < MAX_KEYCODE) 
+        {
+            uint8_t  c = _keymap[m][k];
+            if (c) _buf.push(c);
+        }
         keybuf.pop();
     }
 }

@@ -135,6 +135,7 @@ M5CardputerKeyBoard::exists()
 // Bluetooth keyboard handler (NimBLE)
 
 static volatile bool connected = false;
+static volatile bool nonsecure = false;
 
 static const int MAX_KEYCODE = 96;
 
@@ -209,37 +210,26 @@ notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic, uint8_t *pData
     Serial.print("\r\n");
 #endif
     // handle: 41 -- key / 51 -- media key
-    switch (pRemoteCharacteristic->getHandle())
+    if (length != 8 && length != 11) return; // not key data interface (maybe)
+    keyboard_t *newKeyReport = (keyboard_t*)pData;
+    int buflen = 6;
+    uint8_t *buf = keyboardReport.k2.keys;
+    uint8_t *input = newKeyReport->k2.keys;
+    uint8_t mod = newKeyReport->k2.modifiers;
+    if (length == 11)
     {
-        case 22:
-        case 29:
-        case 41:
-            if (length != 8 && length != 11) return; // not key data interface (maybe)
-            keyboard_t *newKeyReport = (keyboard_t*)pData;
-            int buflen = 6;
-            uint8_t *buf = keyboardReport.k2.keys;
-            uint8_t *input = newKeyReport->k2.keys;
-            uint8_t mod = newKeyReport->k2.modifiers;
-            if (length == 11)
-            {
-                buflen = 10;
-                buf = keyboardReport.k1.keys;
-                input = newKeyReport->k1.keys;
-                mod = newKeyReport->k1.modifiers;     
-            }
-            for (int i = 0 ; i < buflen ; i++)
-            {
-                uint8_t c = input[i];
-                if (c == 0) continue;
-                if (memchr(buf, c, buflen) == NULL) keybuf.push(((uint16_t)mod << 8)|c);
-            }
-            memcpy(&keyboardReport, pData, length);
-            break;
-#if 0
-        default:
-            break;
-#endif
+        buflen = 10;
+        buf = keyboardReport.k1.keys;
+        input = newKeyReport->k1.keys;
+        mod = newKeyReport->k1.modifiers;     
     }
+    for (int i = 0 ; i < buflen ; i++)
+    {
+        uint8_t c = input[i];
+        if (c == 0) continue;
+        if (memchr(buf, c, buflen) == NULL) keybuf.push(((uint16_t)mod << 8)|c);
+    }
+    memcpy(&keyboardReport, pData, length);
 }
 
 void
@@ -305,7 +295,12 @@ AdvertisedDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
 
         NimBLEDevice::getScan()->stop();
         advDevice = advertisedDevice;
+        nonsecure = (advDevice->getName() == "M5-Keyboard");
         doConnect = true;
+        if (nonsecure)
+        {
+            Serial.printf("Keyboard: '%s' does not support secure connection.\r\n", advDevice->getName().c_str());
+        }
     }
 }
 
@@ -324,7 +319,7 @@ BTKeyBoard::connectToServer()
                 Serial.println("Failed to reconnect.");
                 return false;
             }
-            if (!pClient->secureConnection())
+            if (!nonsecure && !pClient->secureConnection())
             {
                 Serial.println("Failed to establish secure connection.");
             }
@@ -354,7 +349,7 @@ BTKeyBoard::connectToServer()
             Serial.println("Failed to connect.");
             return false;
         }
-        if (!pClient->secureConnection())
+        if (!nonsecure && !pClient->secureConnection())
         {
             Serial.println("Failed to establish secure connection.");
             return false;
@@ -368,7 +363,7 @@ BTKeyBoard::connectToServer()
             Serial.println("Failed to connect.");
             return false;
         }
-        if (!pClient->secureConnection())
+        if (!nonsecure && !pClient->secureConnection())
         {
             Serial.println("Failed to establish secure connection.");
             return false;

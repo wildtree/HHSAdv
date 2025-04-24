@@ -139,9 +139,9 @@ static volatile bool nonsecure = false;
 
 static const int MAX_KEYCODE = 96;
 
-const char *BTKeyBoard::HID_SERVICE = "1812";
+//const char *BTKeyBoard::HID_SERVICE = "1812";
 //const char *BTKeyBoard::HID_REPORT_MAP = "2A48";
-const char *BTKeyBoard::HID_REPORT_DATA = "2A4D";
+//const char *BTKeyBoard::HID_REPORT_DATA = "2A4D";
 const uint8_t BTKeyBoard::_keymap[][MAX_KEYCODE] = {
     {    0,   0,   0,   0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
        'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
@@ -242,10 +242,10 @@ ClientCallbacks::onConnect(NimBLEClient* pClient)
 }
 
 void
-ClientCallbacks::onDisconnect(NimBLEClient* pClient)
+ClientCallbacks::onDisconnect(NimBLEClient* pClient, int reason)
 {
     Serial.print(pClient->getPeerAddress().toString().c_str());
-    Serial.println(" disconnected");
+    Serial.printf(" disconnected (%d).\r\n", reason);
     connected = false;
 }
 
@@ -255,45 +255,43 @@ ClientCallbacks::onConnParamsUpdateRequest(NimBLEClient* pClient, const ble_gap_
     return true;
 }
 
-uint32_t
-ClientCallbacks::onPassKeyRequest()
+void
+ClientCallbacks::onPassKeyEntry(NimBLEConnInfo &connInfo)
 {
     Serial.println("Client passkey required.");
-    return 123456;
 }
 
-bool
-ClientCallbacks::onConfirmPIN(uint32_t pin)
+void
+ClientCallbacks::onConfirmPasskey(NimBLEConnInfo &connInfo, uint32_t pin)
 {
     Serial.print("The passkey number: ");
     Serial.println(pin);
-    return true; //pin == 123456;
 }
 
 void
-ClientCallbacks::onAuthenticationComplete(ble_gap_conn_desc *desc)
+ClientCallbacks::onAuthenticationComplete(NimBLEConnInfo &connInfo)
 {
-    if (!desc->sec_state.encrypted)
+    if (!connInfo.isEncrypted())
     {
       Serial.println("Encrypt connection failed - disconnecting");
       /** Find the client with the connection handle provided in desc */
-      NimBLEDevice::getClientByID(desc->conn_handle)->disconnect();
+      NimBLEDevice::getClientByHandle(connInfo.getConnHandle())->disconnect();
     }
 }
 
-static NimBLEAdvertisedDevice *advDevice = nullptr;
-static bool doConnect = false;
+static const NimBLEAdvertisedDevice *advDevice = nullptr;
+static volatile bool doConnect = false;
 
 
 void
-AdvertisedDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
+AdvertisedDeviceCallbacks::onResult(const NimBLEAdvertisedDevice *advertisedDevice)
 {
-    if (advertisedDevice->haveServiceUUID() && advertisedDevice->isAdvertisingService((NimBLEUUID)BTKeyBoard::HID_SERVICE))
+    if (advertisedDevice->haveServiceUUID() && advertisedDevice->isAdvertisingService(NimBLEUUID(BTKeyBoard::HID_SERVICE)))
     {
+        NimBLEDevice::getScan()->stop();
         Serial.print("Advertised HID Device found: ");
         Serial.println(advertisedDevice->toString().c_str());
 
-        NimBLEDevice::getScan()->stop();
         advDevice = advertisedDevice;
         nonsecure = (advDevice->getName() == "M5-Keyboard");
         doConnect = true;
@@ -309,7 +307,8 @@ BTKeyBoard::connectToServer()
 {
     NimBLEClient *pClient = nullptr;
     Serial.println("Start connecting to server...");
-    if (NimBLEDevice::getClientListSize())
+    std::vector<NimBLEClient*> connectedClients = NimBLEDevice::getConnectedClients();
+    if (connectedClients.size() > 0)
     {
         pClient = NimBLEDevice::getClientByPeerAddress(advDevice->getAddress());
         if (pClient)
@@ -333,7 +332,7 @@ BTKeyBoard::connectToServer()
 
     if (!pClient)
     {
-        if (NimBLEDevice::getClientListSize() >= NIMBLE_MAX_CONNECTIONS)
+        if (connectedClients.size() >= NIMBLE_MAX_CONNECTIONS)
         {
             Serial.println("No more connection.");
             return false;
@@ -341,8 +340,8 @@ BTKeyBoard::connectToServer()
         pClient = NimBLEDevice::createClient();
         Serial.println("A new client created.");
         pClient->setClientCallbacks(new ClientCallbacks(), false);
-        pClient->setConnectionParams(12, 12, 0, 51);
-        pClient->setConnectTimeout(5); // 5sec
+        pClient->setConnectionParams(12, 12, 0, 150);
+        pClient->setConnectTimeout(5000); // 5sec
         if (!pClient->connect(advDevice))
         {
             NimBLEDevice::deleteClient(pClient);
@@ -378,8 +377,8 @@ BTKeyBoard::connectToServer()
 
     if (pSvc = pClient->getService(HID_SERVICE))
     {
-        std::vector<NimBLERemoteCharacteristic*> *chrvec = pSvc->getCharacteristics(true);
-        for(auto &it: *chrvec)
+        std::vector<NimBLERemoteCharacteristic*> chrvec = pSvc->getCharacteristics(true);
+        for(auto &it: chrvec)
         {
             if (it->getUUID() == NimBLEUUID(HID_REPORT_DATA))
             {
@@ -411,18 +410,24 @@ BTKeyBoard::begin()
     //NimBLEDevice::setSecurityIOCap(BLE_HS_IO_KEYBOARD_ONLY);
     NimBLEDevice::setPower(ESP_PWR_LVL_P9);
     NimBLEScan *pScan = NimBLEDevice::getScan();
-    pScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
-    pScan->setInterval(45);
-    pScan->setWindow(15);
+    pScan->setScanCallbacks(new AdvertisedDeviceCallbacks(), false);
+    pScan->setInterval(48);
+    pScan->setWindow(48);
     pScan->setActiveScan(true);
     //pScan->setDuplicateFilter(true);
     //Serial.printf("Scan %d millisecond(s).\r\n", scanTime);
     pScan->start(scanTime);
+    // wait for scan to finish
+    while (pScan->isScanning())
+    {
+        delay(100);
+    }
 }
 
 void
 BTKeyBoard::update()
 {
+    if (NimBLEDevice::getScan()->isScanning()) return;
     if(doConnect)
     {
         doConnect = false;

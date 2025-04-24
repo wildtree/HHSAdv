@@ -9,7 +9,7 @@
 
 const String ZSystem::_credit[] = {
     "ハイハイスクールアドベンチャー",
-    "Copyright(c)1995-2024",
+    "Copyright(c)1995-2025",
     "ZOBplus",  
     "hiro"
 };

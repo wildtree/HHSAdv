@@ -24,7 +24,7 @@ public:
     static const int I2C_ADDR = 0x08;
     enum kbd_type_t { unknown = -1, faces = 0, cardputer = 1, ble = 2 };
 
-    virtual inline kbd_type_t keyboard_type() = 0;
+    virtual kbd_type_t keyboard_type() = 0;
 };
 
 class M5StackKeyBoard : public KeyBoard
@@ -90,17 +90,17 @@ public:
 class  ClientCallbacks : public NimBLEClientCallbacks
 {
     void onConnect(NimBLEClient* pClient) override;
-    void onDisconnect(NimBLEClient* pClient) override;
+    void onDisconnect(NimBLEClient* pClient, int reason) override;
     bool onConnParamsUpdateRequest(NimBLEClient* pClient, const ble_gap_upd_params* params) override;
 
-    uint32_t onPassKeyRequest () override;
-    bool onConfirmPIN(uint32_t pin) override;
-    void onAuthenticationComplete(ble_gap_conn_desc *desc) override;
+    void onPassKeyEntry (NimBLEConnInfo &connInfo) override;
+    void onConfirmPasskey(NimBLEConnInfo &connInfo,uint32_t pin) override;
+    void onAuthenticationComplete(NimBLEConnInfo &connInfo) override;
 };
 
-class AdvertisedDeviceCallbacks: public NimBLEAdvertisedDeviceCallbacks
+class AdvertisedDeviceCallbacks: public NimBLEScanCallbacks
 {
-    void onResult(NimBLEAdvertisedDevice *advertisedDevice) override;
+    void onResult(const NimBLEAdvertisedDevice *advertisedDevice) override;    
 };
 
 class BTKeyBoard : public KeyBoard
@@ -122,9 +122,9 @@ public:
     virtual bool exists() override;
     virtual inline kbd_type_t keyboard_type() override { return ble; }
 
-    static const char *HID_SERVICE;
+    static const uint16_t HID_SERVICE = 0x1812;
 //  static const char *HID_REPORT_MAP;
-    static const char *HID_REPORT_DATA;
+    static const uint16_t HID_REPORT_DATA = 0x2a4d;
 
     static const uint32_t scanTime;
 };

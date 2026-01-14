@@ -58,6 +58,7 @@ setup()
     // put your setup code here, to run once:
     auto cfg = M5.config();
     cfg.clear_display = true;
+    cfg.serial_baudrate = 115200;
     M5.begin(cfg);
 #ifdef M5ATOM_LITE
     extDisplay.initExt();

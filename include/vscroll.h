@@ -5,6 +5,7 @@
 #define VSCROLL_H
 
 #include <M5Unified.h>
+#include <vector>
 
 #if !defined(ILI9342C_VSCRDEF)
 #define ILI9342C_VSCRDEF (0x33)
@@ -23,12 +24,16 @@ class ZVScroll
 protected:
     int _top, _bottom;
     int _tx, _ty;
-    int _h;
+    int _h, _lh, _ltop;
     uint16_t *_buf;
     float _scale;
     int _x,_y;
     M5Canvas *_canvas;
+    std::vector<String> _lines;
+    String _line;
 
+    virtual void drawString(const String &s);
+    virtual void drawLine(const String &s, int y);
 public:
     ZVScroll(uint16_t top = 0, uint16_t bottom = 0);
     //ZVScroll(const ZVScroll &x);
@@ -50,11 +55,14 @@ public:
         invalidate();
     }
     virtual float getScale() const { return _scale; }
+    virtual void redraw();
+    virtual void scroll(int delta);
 
     static const int YMax = 240;
     static const int XMax = 320;
     static const int FontHeight = 16;
     static const int FontWidth = 8;
+    static const int Lines = 16;
 };
 
 #if defined(CONFIG_IDF_TARGET_ESP32S3)

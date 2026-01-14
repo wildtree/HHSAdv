@@ -9,7 +9,7 @@
 
 const String ZSystem::_credit[] = {
     "ハイハイスクールアドベンチャー",
-    "Copyright(c)1995-2025",
+    "Copyright(c)1995-2026",
     "ZOBplus",  
     "hiro"
 };
@@ -720,6 +720,11 @@ ZSystem::loop(void)
             if (c == 7) 
             {
                 chgscale();
+                return;
+            }
+            if (c == 0x1e || c == 0x1f)
+            {
+                _zvs->scroll((c == 0x1e) ? -1 : 1);
                 return;
             }
 

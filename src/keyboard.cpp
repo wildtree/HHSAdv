@@ -30,6 +30,14 @@ M5StackKeyBoard::fetch_key(uint8_t &c)
         if (Wire.available())
         {
             c = Wire.read();
+            switch(c)
+            {
+                case 0xB7: c= 0x1e; break; // up
+                case 0xC0: c= 0x1f; break; // down
+                case 0xBF: c= 0x1c; break; // left
+                case 0xC1: c= 0x1d; break; // right
+            }
+            //Serial.printf("KeyCode: %x\r\n", c);
             r = true;
         }
     }
@@ -68,6 +76,14 @@ M5Core2KeyBoard::fetch_key(uint8_t &c)
         if (Wire1.available())
         {
             c = Wire1.read();
+            switch(c)
+            {
+                case 0xB7: c= 0x1e; break; // up
+                case 0xC0: c= 0x1f; break; // down
+                case 0xBF: c= 0x1c; break; // left
+                case 0xC1: c= 0x1d; break; // right
+            }
+            //Serial.printf("KeyCode: %x\r\n", c);
             r = true;
         }
     }
@@ -111,14 +127,32 @@ M5CardputerKeyBoard::fetch_key(uint8_t &c)
             Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
             for(auto i:status.word)
             {
+                if (status.fn)
+                {
+                    switch(i)
+                    {
+                        case ';': i = 0x1e; break; // up
+                        case '.': i = 0x1f; break; // down
+                        case ',': i = 0x1c; break; // left
+                        case '/': i = 0x1d; break; // right
+                        default: break;
+                    }
+                }
                 _buf.push(i);
             }
+            /*
+            if (status.arrow_up) _buf.push(0x1e);
+            if (status.arrow_down) _buf.push(0x1f);
+            */
             if (status.del) _buf.push(0x08);
             if (status.enter) _buf.push('\r');
-            c = _buf.front();
-            _buf.pop();
-            
-            r = true;
+            if (_buf.empty() == false)
+            {
+                c = _buf.front();
+                _buf.pop();
+                
+                r = true;
+            }
         }
     }
     return r;
@@ -147,8 +181,8 @@ const uint8_t BTKeyBoard::_keymap[][MAX_KEYCODE] = {
        'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
        '3', '4', '5', '6', '7', '8', '9', '0',  13,  27,   8,   9, ' ', '-', '=', '[',
        ']','\\',   0, ';','\'', '`', ',', '.', '/',   0,   0,   0,   0,   0,   0,   0,
-         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 127,   0,   0,   0,
-         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 127,   0,   0,  29,
+        28,  31,  30,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     },
     {
          0,   0,   0,   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,
@@ -163,8 +197,8 @@ const uint8_t BTKeyBoard::_keymap[][MAX_KEYCODE] = {
        'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!', '@',
        '#', '$', '%', '^', '&', '*', '(', ')',  13,  27,   8,   9, ' ', '_', '+', '{',
        '}', '|',   0, ':', '"', '~', '<', '>', '?',   0,   0,   0,   0,   0,   0,   0,
-         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 127,   0,   0,   0,
-         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 127,   0,   0,  29,
+        28,  31,  30,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     },
 };
 
